@@ -33,9 +33,9 @@ Sistema web para apoyar la administración de conjuntos residenciales.
 - SQLite / PostgreSQL
 
 ## Equipo
-- Frontend: 
-- Backend:
-- Base de datos:
+- Frontend: Yesica
+- Backend: Thomas
+- Base de datos: Jhon
 
 ## Estado del proyecto
 Proyecto académico – Ingeniería de Software
