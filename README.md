@@ -26,11 +26,11 @@ Sistema web para apoyar la administración de conjuntos residenciales.
 
 ## Tecnologías
 - Python
-- Django
+- Flask
 - HTML
 - CSS
 - Bootstrap
-- SQLite / PostgreSQL
+- SQLite
 
 ## Equipo
 - Frontend: Yesica
