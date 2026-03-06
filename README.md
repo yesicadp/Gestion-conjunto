@@ -30,8 +30,8 @@ Sistema web para apoyar la administración de conjuntos residenciales.
 - HTML
 - CSS
 - Bootstrap
-- SQLite
-
+- MySQL
+  
 ## Equipo
 - Frontend: Yesica
 - Backend: Thomas
