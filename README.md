@@ -33,7 +33,7 @@ Sistema web para apoyar la administración de conjuntos residenciales.
 - MySQL
   
 ## Equipo
-- Frontend: Yesica
+- Frontend: Yesica, Axel
 - Backend: Thomas
 - Base de datos: Jhon
 
