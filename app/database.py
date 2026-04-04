@@ -7,13 +7,11 @@ def obtener_conexion():
     Retorna el objeto de conexión si es exitoso, o None si falla.
     """
     try:
-        # Estos datos (host, user, password, database) los cambiaremos 
-        # por los reales cuando Jhonsito nos entregue la base de datos local o en la nube.
         conexion = mysql.connector.connect(
-            host='localhost',        # Normalmente es localhost si trabajamos en nuestro PC
-            user='root',             # Usuario por defecto en XAMPP/MySQL
-            password='1234',         # Contraseña de tu MySQL local
-            database='cipres_db'     # El nombre de la base de datos que creará Jhonsito
+            host='localhost',
+            user='root',
+            password='1234', 
+            database='el_cipres'  # Conectamos a la DB de Jhonsito
         )
         
         if conexion.is_connected():

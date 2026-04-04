@@ -1,109 +1,39 @@
 from flask import Blueprint, render_template, request, redirect, url_for, jsonify, session
+from database import obtener_conexion
 
-# Creamos un 'Blueprint' que es como un módulo de rutas
 main = Blueprint('main', __name__)
-
-usuarios_mock = [
-    {
-        "id": 1, 
-        "nombre": "Administrador Principal", 
-        "contrasena": "1234", 
-        "correo": "admin@cipres.com", 
-        "telefono": "3001112233", 
-        "rol": "administrador"
-    },
-    {
-        "id": 2, 
-        "nombre": "Thomas", 
-        "contrasena": "1234", 
-        "correo": "thomas@correo.com", 
-        "telefono": "3004445566", 
-        "rol": "residente"
-    }
-]
-
-# --- DATOS SIMULADOS ALINEADOS CON EL MER ---
-
-viviendas_mock = [
-    {"id": 1, "Numero": "Casa 1", "Estado": "Al día"},
-    {"id": 2, "Numero": "Casa 2", "Estado": "En mora"},
-    {"id": 3, "Numero": "Casa 3", "Estado": "Al día"},
-    {"id": 4, "Numero": "Casa 4", "Estado": "Al día"}
-
-    
-]
-
-pagos_mock = [
-    {
-        "id": 1, 
-        "fecha": "2026-04-01", 
-        "monto": 150000, 
-        "estado": "Aprobado"
-    },
-    {
-        "id": 2, 
-        "fecha": "2026-04-02", 
-        "monto": 150000, 
-        "estado": "Pendiente"
-    }
-]
-reservas_mock = [
-    {
-        "id": 1, 
-        "fecha": "2026-04-15", 
-        "Hora de inicio": "14:00", 
-        "Hora de fin": "18:00", 
-        "Estado": "Confirmada"
-    },
-    {
-        "id": 2, 
-        "fecha": "2026-04-20", 
-        "Hora de inicio": "08:00", 
-        "Hora de fin": "12:00", 
-        "Estado": "Pendiente"
-    }
-]
-
-anuncios_mock = [
-    {
-        "id": 1, 
-        "titulo": "Mantenimiento de zonas verdes", 
-        "contenido": "El día de mañana se realizará poda en los jardines principales.", 
-        "fecha": "2026-04-03"
-    },
-    {
-        "id": 2, 
-        "titulo": "Asamblea General", 
-        "contenido": "Se convoca a todos los residentes a la reunión anual el próximo sábado.", 
-        "fecha": "2026-04-10"
-    }
-]
 
 @main.route('/')
 def inicio():
     return "Ruta de Inicio - Conjunto Ciprés"
 
+# LOGIN REAL CON BASE DE DATOS
 @main.route('/login', methods=['GET', 'POST'])
 def login():
     if request.method == 'POST':
         correo_ingresado = request.form.get('correo')
         contrasena_ingresada = request.form.get('contrasena')
 
-        usuario_encontrado = next(
-            (u for u in usuarios_mock if u['correo'] == correo_ingresado and u['contrasena'] == contrasena_ingresada), 
-            None
-        )
+        conexion = obtener_conexion()
+        if conexion:
+            cursor = conexion.cursor(dictionary=True)
+            # Buscamos el usuario por su correo
+            query = "SELECT id_usuario, nombre, contraseña, rol FROM usuario WHERE correo = %s"
+            cursor.execute(query, (correo_ingresado,))
+            usuario = cursor.fetchone()
+            cursor.close()
+            conexion.close()
 
-        if usuario_encontrado:
-            # GUARDAMOS EN LA SESIÓN
-            session['usuario_id'] = usuario_encontrado['id']
-            session['nombre'] = usuario_encontrado['nombre']
-            session['rol'] = usuario_encontrado['rol']
-            
-            if usuario_encontrado['rol'] == 'administrador':
-                return redirect(url_for('main.dashboard_admin'))
-            else:
-                return redirect(url_for('main.dashboard_residente'))
+            # Verificamos si existe y si la contraseña coincide
+            if usuario and usuario['contraseña'] == contrasena_ingresada:
+                session['usuario_id'] = usuario['id_usuario']
+                session['nombre'] = usuario['nombre']
+                session['rol'] = usuario['rol']
+                
+                if usuario['rol'] == 'administrador':
+                    return redirect(url_for('main.dashboard_admin'))
+                else:
+                    return redirect(url_for('main.dashboard_residente'))
         
         return "Correo o contraseña incorrectos."
 
@@ -111,9 +41,10 @@ def login():
 
 @main.route('/logout')
 def logout():
-    session.clear() # Borra toda la información de la sesión
+    session.clear()
     return redirect(url_for('main.login'))
 
+# DASHBOARDS PROTEGIDOS
 @main.route('/dashboard-residente')
 def dashboard_residente():
     if 'rol' not in session or session['rol'] != 'residente':
@@ -123,129 +54,97 @@ def dashboard_residente():
 @main.route('/dashboard-admin')
 def dashboard_admin():
     if 'rol' not in session or session['rol'] != 'administrador':
-        # Si no es admin, lo mandamos al login por seguridad
         return redirect(url_for('main.login'))
-    
     return f"Bienvenido al Panel del Administrador, {session['nombre']}"
 
+# LISTADO DE VIVIENDAS
 @main.route('/viviendas', methods=['GET'])
 def listado_viviendas():
-    # El día que Jhonsito nos entregue la base de datos, 
-    # borraremos el "viviendas_mock" y aquí pondremos la consulta SQL.
-    # El return seguirá siendo exactamente igual.
-    return jsonify({
-        "mensaje": "Listado de viviendas obtenido con éxito",
-        "total_casas_registradas": len(viviendas_mock),
-        "viviendas": viviendas_mock
-    })
+    conexion = obtener_conexion()
+    if conexion:
+        cursor = conexion.cursor(dictionary=True)
+        cursor.execute("SELECT id_vivienda, numero, estado FROM vivienda")
+        viviendas = cursor.fetchall()
+        cursor.close()
+        conexion.close()
+        return jsonify({"viviendas": viviendas})
+    return jsonify({"error": "No hay conexión"}), 500
 
+# GESTIÓN DE PAGOS
 @main.route('/pagos', methods=['GET', 'POST'])
 def gestion_pagos():
-    # Si la petición es POST, significa que el administrador o el sistema está registrando un pago
+    conexion = obtener_conexion()
+    if not conexion: return jsonify({"error": "No hay conexión"}), 500
+    
+    cursor = conexion.cursor(dictionary=True)
     if request.method == 'POST':
-        fecha_pago = request.form.get('fecha')
-        monto_pago = request.form.get('monto')
-        estado_pago = request.form.get('estado')
+        fecha = request.form.get('fecha')
+        monto = request.form.get('monto')
+        estado = request.form.get('estado')
+        vivienda_id = request.form.get('vivienda_id') # Importante para la FK de Jhon
         
-        # 1. Validar que no falten datos
-        if not fecha_pago or not monto_pago or not estado_pago:
-            return jsonify({"error": "Faltan datos para registrar el pago (fecha, monto o estado)"}), 400
-            
-        # 2. Guardar el nuevo pago en nuestra lista simulada
-        nuevo_pago = {
-            "id": len(pagos_mock) + 1,
-            "fecha": fecha_pago,
-            "monto": float(monto_pago), # Aseguramos que el monto sea un número
-            "estado": estado_pago
-        }
-        pagos_mock.append(nuevo_pago)
-        
-        # Devolvemos el código 201 (Created)
-        return jsonify({
-            "mensaje": "Pago registrado con éxito",
-            "pago": nuevo_pago
-        }), 201
+        query = "INSERT INTO pago (fecha, monto, estado, vivienda_id) VALUES (%s, %s, %s, %s)"
+        cursor.execute(query, (fecha, monto, estado, vivienda_id))
+        conexion.commit()
+        mensaje = "Pago registrado en BD"
+    else:
+        cursor.execute("SELECT * FROM pago")
+        pagos = cursor.fetchall()
+        return jsonify({"pagos": pagos})
 
-    # Si la petición es GET, simplemente retornamos los pagos registrados
-    return jsonify({
-        "mensaje": "Historial de pagos obtenido con éxito",
-        "total_pagos": len(pagos_mock),
-        "pagos": pagos_mock
-    })
+    cursor.close()
+    conexion.close()
+    return jsonify({"mensaje": mensaje}), 201
 
-@main.route('/parqueaderos')
-def parqueaderos():
-    return "Gestión de Parqueaderos"
-
+# RESERVAS DEL SALÓN
 @main.route('/reservas', methods=['GET', 'POST'])
 def gestion_reservas():
-    # Si se envía un formulario para crear una nueva reserva
+    conexion = obtener_conexion()
+    if not conexion: return jsonify({"error": "No hay conexión"}), 500
+    
+    cursor = conexion.cursor(dictionary=True)
     if request.method == 'POST':
-        fecha_solicitada = request.form.get('fecha')
-        hora_inicio = request.form.get('Hora de inicio')
-        hora_fin = request.form.get('Hora de fin')
+        fecha = request.form.get('fecha')
+        h_inicio = request.form.get('hora_inicio')
+        h_fin = request.form.get('hora_fin')
+        usuario_id = session.get('usuario_id')
         
-        # 1. Validar que vengan los datos exactos
-        if not fecha_solicitada or not hora_inicio or not hora_fin:
-            return jsonify({"error": "Faltan datos para la reserva (fecha, Hora de inicio o Hora de fin)"}), 400
-            
-        # 2. Validar disponibilidad básica 
-        for reserva in reservas_mock:
-            if reserva['fecha'] == fecha_solicitada and reserva['Hora de inicio'] == hora_inicio:
-                return jsonify({"error": f"El salón ya está reservado el {fecha_solicitada} a esa hora"}), 400
-                
-        # 3. Guardar la nueva reserva adaptada al diseño de Jhonsito
-        nueva_reserva = {
-            "id": len(reservas_mock) + 1,
-            "fecha": fecha_solicitada,
-            "Hora de inicio": hora_inicio,
-            "Hora de fin": hora_fin,
-            "Estado": "Confirmada"
-        }
-        reservas_mock.append(nueva_reserva)
-        
-        return jsonify({
-            "mensaje": "Reserva registrada con éxito",
-            "reserva": nueva_reserva
-        }), 201
+        query = "INSERT INTO reserva (fecha, hora_inicio, hora_fin, estado, usuario_id) VALUES (%s, %s, %s, 'Confirmada', %s)"
+        cursor.execute(query, (fecha, h_inicio, h_fin, usuario_id))
+        conexion.commit()
+        return jsonify({"mensaje": "Reserva guardada"}), 201
+    
+    cursor.execute("SELECT * FROM reserva")
+    reservas = cursor.fetchall()
+    for reserva in reservas:
+        if reserva['hora_inicio']:
+            reserva['hora_inicio'] = str(reserva['hora_inicio'])
+        if reserva['hora_fin']:
+            reserva['hora_fin'] = str(reserva['hora_fin'])
+    cursor.close()
+    conexion.close()
+    return jsonify({"reservas": reservas})
 
-    # Si es GET, retornamos las reservas existentes
-    return jsonify({
-        "mensaje": "Reservas obtenidas con éxito",
-        "total_reservas": len(reservas_mock),
-        "reservas": reservas_mock
-    })
-
-
+# ANUNCIOS 
 @main.route('/anuncios', methods=['GET', 'POST'])
 def gestion_anuncios():
-    # Si la petición es POST, el administrador está creando un nuevo anuncio
+    conexion = obtener_conexion()
+    if not conexion: return jsonify({"error": "No hay conexión"}), 500
+    
+    cursor = conexion.cursor(dictionary=True)
     if request.method == 'POST':
-        titulo_anuncio = request.form.get('titulo')
-        contenido_anuncio = request.form.get('contenido')
-        fecha_anuncio = request.form.get('fecha')
+        titulo = request.form.get('titulo')
+        contenido = request.form.get('contenido')
+        fecha = request.form.get('fecha')
+        user_id = session.get('usuario_id')
         
-        # 1. Validar que vengan todos los datos del MER
-        if not titulo_anuncio or not contenido_anuncio or not fecha_anuncio:
-            return jsonify({"error": "Faltan datos para crear el anuncio (titulo, contenido o fecha)"}), 400
-            
-        # 2. Guardar el nuevo anuncio
-        nuevo_anuncio = {
-            "id": len(anuncios_mock) + 1,
-            "titulo": titulo_anuncio,
-            "contenido": contenido_anuncio,
-            "fecha": fecha_anuncio
-        }
-        anuncios_mock.append(nuevo_anuncio)
-        
-        return jsonify({
-            "mensaje": "Anuncio publicado con éxito",
-            "anuncio": nuevo_anuncio
-        }), 201
+        query = "INSERT INTO anuncio (titulo, contenido, fecha, usuario_id) VALUES (%s, %s, %s, %s)"
+        cursor.execute(query, (titulo, contenido, fecha, user_id))
+        conexion.commit()
+        return jsonify({"mensaje": "Anuncio publicado"}), 201
 
-    # Si es GET, retornamos la lista de anuncios
-    return jsonify({
-        "mensaje": "Anuncios obtenidos con éxito",
-        "total_anuncios": len(anuncios_mock),
-        "anuncios": anuncios_mock
-    })
+    cursor.execute("SELECT * FROM anuncio")
+    anuncios = cursor.fetchall()
+    cursor.close()
+    conexion.close()
+    return jsonify({"anuncios": anuncios})
