@@ -1,6 +1,6 @@
-# Gestión de Conjuntos Residenciales
+# Gestión de Conjunto Residencial
 
-Sistema web para apoyar la administración de conjuntos residenciales.
+Sistema web para apoyar la administración del conjunto residencial o agrupación de vivienda "El Ciprés"
 
 ## Funcionalidades principales
 - Gestión de apartamentos y residentes
