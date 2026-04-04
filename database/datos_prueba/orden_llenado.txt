@@ -1,0 +1,7 @@
+1. usuarios
+2. viviendas
+3. parqueaderos
+4. asignacion_parqueaderos
+5. reservas
+6. facturas (enero-diciembre)
+7. detalle (administracion,parqueaderos,multas,reservas)
