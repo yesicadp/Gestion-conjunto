@@ -15,7 +15,7 @@ def obtener_conexion():
         )
         
         if conexion.is_connected():
-            print("¡Conexión exitosa a la base de datos MySQL!")
+            print("Conexión exitosa a la base de datos")
             return conexion
 
     except Error as e:

@@ -1,5 +1,6 @@
 from flask import Blueprint, render_template, request, redirect, url_for, jsonify, session
 from database import obtener_conexion
+from datetime import datetime
 
 main = Blueprint('main', __name__)
 
@@ -7,7 +8,7 @@ main = Blueprint('main', __name__)
 def inicio():
     return "Ruta de Inicio - Conjunto Ciprés"
 
-# LOGIN REAL CON BASE DE DATOS
+# LOGIN 
 @main.route('/login', methods=['GET', 'POST'])
 def login():
     if request.method == 'POST':
@@ -17,17 +18,15 @@ def login():
         conexion = obtener_conexion()
         if conexion:
             cursor = conexion.cursor(dictionary=True)
-            # Buscamos el usuario por su correo
-            query = "SELECT id_usuario, nombre, contraseña, rol FROM usuario WHERE correo = %s"
+            query = "SELECT id_usuario, nombres, apellidos, contrasena, rol FROM usuarios WHERE correo_electronico = %s"
             cursor.execute(query, (correo_ingresado,))
             usuario = cursor.fetchone()
             cursor.close()
             conexion.close()
 
-            # Verificamos si existe y si la contraseña coincide
-            if usuario and usuario['contraseña'] == contrasena_ingresada:
+            if usuario and usuario['contrasena'] == contrasena_ingresada:
                 session['usuario_id'] = usuario['id_usuario']
-                session['nombre'] = usuario['nombre']
+                session['nombre'] = f"{usuario['nombres']} {usuario['apellidos']}"
                 session['rol'] = usuario['rol']
                 
                 if usuario['rol'] == 'administrador':
@@ -44,7 +43,6 @@ def logout():
     session.clear()
     return redirect(url_for('main.login'))
 
-# DASHBOARDS PROTEGIDOS
 @main.route('/dashboard-residente')
 def dashboard_residente():
     if 'rol' not in session or session['rol'] != 'residente':
@@ -57,20 +55,20 @@ def dashboard_admin():
         return redirect(url_for('main.login'))
     return f"Bienvenido al Panel del Administrador, {session['nombre']}"
 
-# LISTADO DE VIVIENDAS
+# VIVIENDAS
 @main.route('/viviendas', methods=['GET'])
 def listado_viviendas():
     conexion = obtener_conexion()
     if conexion:
         cursor = conexion.cursor(dictionary=True)
-        cursor.execute("SELECT id_vivienda, numero, estado FROM vivienda")
+        cursor.execute("SELECT id_vivienda, id_usuario, tiene_vehiculo, estado_financiero FROM viviendas")
         viviendas = cursor.fetchall()
         cursor.close()
         conexion.close()
         return jsonify({"viviendas": viviendas})
     return jsonify({"error": "No hay conexión"}), 500
 
-# GESTIÓN DE PAGOS
+# FACTURAS
 @main.route('/pagos', methods=['GET', 'POST'])
 def gestion_pagos():
     conexion = obtener_conexion()
@@ -78,25 +76,30 @@ def gestion_pagos():
     
     cursor = conexion.cursor(dictionary=True)
     if request.method == 'POST':
+        id_vivienda = request.form.get('id_vivienda')
         fecha = request.form.get('fecha')
-        monto = request.form.get('monto')
+        fecha_oportuno = request.form.get('fecha_pago_oportuno')
+        fecha_limite = request.form.get('fecha_limite')
         estado = request.form.get('estado')
-        vivienda_id = request.form.get('vivienda_id') # Importante para la FK de Jhon
-        
-        query = "INSERT INTO pago (fecha, monto, estado, vivienda_id) VALUES (%s, %s, %s, %s)"
-        cursor.execute(query, (fecha, monto, estado, vivienda_id))
+        query = "INSERT INTO facturas (id_vivienda, fecha, fecha_pago_oportuno, fecha_limite, estado) VALUES (%s, %s, %s, %s, %s)"
+        cursor.execute(query, (id_vivienda, fecha, fecha_oportuno, fecha_limite, estado))
         conexion.commit()
-        mensaje = "Pago registrado en BD"
+        mensaje = "Factura registrada en BD"
     else:
-        cursor.execute("SELECT * FROM pago")
+        cursor.execute("SELECT * FROM facturas")
         pagos = cursor.fetchall()
+        # Convertimos las fechas a string para evitar errores JSON
+        for p in pagos:
+            p['fecha'] = str(p['fecha'])
+            p['fecha_pago_oportuno'] = str(p['fecha_pago_oportuno'])
+            p['fecha_limite'] = str(p['fecha_limite'])
         return jsonify({"pagos": pagos})
 
     cursor.close()
     conexion.close()
     return jsonify({"mensaje": mensaje}), 201
 
-# RESERVAS DEL SALÓN
+# RESERVAS
 @main.route('/reservas', methods=['GET', 'POST'])
 def gestion_reservas():
     conexion = obtener_conexion()
@@ -104,28 +107,24 @@ def gestion_reservas():
     
     cursor = conexion.cursor(dictionary=True)
     if request.method == 'POST':
-        fecha = request.form.get('fecha')
-        h_inicio = request.form.get('hora_inicio')
-        h_fin = request.form.get('hora_fin')
+        fecha_evento = request.form.get('fecha_evento')
         usuario_id = session.get('usuario_id')
         
-        query = "INSERT INTO reserva (fecha, hora_inicio, hora_fin, estado, usuario_id) VALUES (%s, %s, %s, 'Confirmada', %s)"
-        cursor.execute(query, (fecha, h_inicio, h_fin, usuario_id))
+        query = "INSERT INTO reservas (id_usuario, fecha_evento, estado) VALUES (%s, %s, 'pendiente')"
+        cursor.execute(query, (usuario_id, fecha_evento))
         conexion.commit()
         return jsonify({"mensaje": "Reserva guardada"}), 201
     
-    cursor.execute("SELECT * FROM reserva")
+    cursor.execute("SELECT * FROM reservas")
     reservas = cursor.fetchall()
-    for reserva in reservas:
-        if reserva['hora_inicio']:
-            reserva['hora_inicio'] = str(reserva['hora_inicio'])
-        if reserva['hora_fin']:
-            reserva['hora_fin'] = str(reserva['hora_fin'])
+    for r in reservas:
+        r['fecha_evento'] = str(r['fecha_evento'])
+        
     cursor.close()
     conexion.close()
     return jsonify({"reservas": reservas})
 
-# ANUNCIOS 
+# ANUNCIOS
 @main.route('/anuncios', methods=['GET', 'POST'])
 def gestion_anuncios():
     conexion = obtener_conexion()
@@ -135,16 +134,19 @@ def gestion_anuncios():
     if request.method == 'POST':
         titulo = request.form.get('titulo')
         contenido = request.form.get('contenido')
-        fecha = request.form.get('fecha')
+        fecha_creacion = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
         user_id = session.get('usuario_id')
         
-        query = "INSERT INTO anuncio (titulo, contenido, fecha, usuario_id) VALUES (%s, %s, %s, %s)"
-        cursor.execute(query, (titulo, contenido, fecha, user_id))
+        query = "INSERT INTO anuncios (id_usuario, titulo, contenido, fecha_creacion) VALUES (%s, %s, %s, %s)"
+        cursor.execute(query, (user_id, titulo, contenido, fecha_creacion))
         conexion.commit()
         return jsonify({"mensaje": "Anuncio publicado"}), 201
 
-    cursor.execute("SELECT * FROM anuncio")
+    cursor.execute("SELECT * FROM anuncios")
     anuncios = cursor.fetchall()
+    for a in anuncios:
+        a['fecha_creacion'] = str(a['fecha_creacion'])
+        
     cursor.close()
     conexion.close()
     return jsonify({"anuncios": anuncios})
