@@ -19,8 +19,15 @@
             </div>
 
             <div class="bienvenida-area">
-                <p>Bienvenido a El Ciprés</p>
-                <h2>Casa 3</h2>
+                <h5 class="text-center">Bienvenido a El Ciprés</h5>
+                <h2 class="text-center fw-bold">
+                    Casa 
+                    {% if vivienda %}
+                        {{ vivienda.id_vivienda }}
+                    {% else %}
+                        Sin asignar
+                    {% endif %}
+                </h2>
             </div>
 
             <div class="iconos-area">
@@ -84,16 +91,29 @@
                         <p>{{ nombre }}</p>
 
                         <p><strong>Teléfono</strong></p>
-                        <p>300 123 4567</p>
+                        <p>{{ telefono if telefono else "No registrado" }}</p>
 
                         <p><strong>Correo Electrónico</strong></p>
                         <p>{{ correo }}</p>
 
                         <p><strong>Número de Vivienda</strong></p>
-                        <p>Interior 3</p>
+                        <p>
+                            Interior 
+                            {% if vivienda %}
+                                {{ vivienda.id_vivienda }}
+                            {% else %}
+                                Sin asignar
+                            {% endif %}
+                        </p>
 
                         <p><strong>Parqueadero Asignado</strong></p>
-                        <p>No</p>
+                        <p>
+                            {% if vivienda and vivienda.tiene_vehiculo %}
+                                Sí
+                            {% else %}
+                                No
+                            {% endif %}
+                        </p>
                     </article>
 
                     <!-- CALENDARIO -->
@@ -123,49 +143,19 @@
                             </thead>
                             <tbody>
                                 <tr>
-                                    <td></td>
-                                    <td>1</td>
-                                    <td>2</td>
-                                    <td>3</td>
-                                    <td>4</td>
-                                    <td>5</td>
-                                    <td>6</td>
+                                    <td></td><td>1</td><td>2</td><td>3</td><td>4</td><td>5</td><td>6</td>
                                 </tr>
                                 <tr>
-                                    <td>7</td>
-                                    <td>8</td>
-                                    <td>9</td>
-                                    <td>10</td>
-                                    <td>11</td>
-                                    <td>12</td>
-                                    <td>13</td>
+                                    <td>7</td><td>8</td><td>9</td><td>10</td><td>11</td><td>12</td><td>13</td>
                                 </tr>
                                 <tr>
-                                    <td>14</td>
-                                    <td>15</td>
-                                    <td>16</td>
-                                    <td>17</td>
-                                    <td>18</td>
-                                    <td>19</td>
-                                    <td>20</td>
+                                    <td>14</td><td>15</td><td>16</td><td>17</td><td>18</td><td>19</td><td>20</td>
                                 </tr>
                                 <tr>
-                                    <td>21</td>
-                                    <td>22</td>
-                                    <td>23</td>
-                                    <td>24</td>
-                                    <td>25</td>
-                                    <td>26</td>
-                                    <td>27</td>
+                                    <td>21</td><td>22</td><td>23</td><td>24</td><td>25</td><td>26</td><td>27</td>
                                 </tr>
                                 <tr>
-                                    <td>28</td>
-                                    <td>29</td>
-                                    <td>30</td>
-                                    <td></td>
-                                    <td></td>
-                                    <td></td>
-                                    <td></td>
+                                    <td>28</td><td>29</td><td>30</td><td></td><td></td><td></td><td></td>
                                 </tr>
                             </tbody>
                         </table>
@@ -173,7 +163,7 @@
 
                     <!-- SALÓN COMUNAL -->
                     <article class="card salon-comunal">
-                        <h3>Salon Comunal</h3>
+                        <h3>Salón Comunal</h3>
                         <p><strong>Reservas:</strong></p>
                         <ul>
                             <li>10 de abril de 2026</li>
@@ -184,7 +174,9 @@
                     <!-- PARQUEADEROS DISPONIBLES -->
                     <article class="card parqueaderos-disponibles">
                         <h3>Parqueaderos Disponibles</h3>
-                        <p class="numero-parqueaderos">8</p>
+                        <p class="numero-parqueaderos">
+                            {{ parqueaderos_disponibles }}
+                        </p>
                     </article>
 
                 </section>
@@ -194,7 +186,7 @@
 
                     <article class="card estado-pago">
                         <h4>Estado de Pago</h4>
-                        <p>Pendiente</p>
+                        <p>{{ vivienda.estado_financiero if vivienda else "No disponible" }}</p>
                     </article>
 
                     <article class="card fecha-limite">

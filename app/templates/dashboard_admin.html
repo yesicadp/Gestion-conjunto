@@ -55,101 +55,34 @@
                 </section>
 
                 <section class="grid-viviendas">
+                    {% for vivienda in viviendas %}
                     <article class="casa-card">
                         <div class="casa-icono">🏠</div>
-                        <h3>1</h3>
-                        <p>Nombre</p>
-                        <p>Teléfono</p>
-                        <div class="estado estado-dia">Al día</div>
-                    </article>
 
-                    <article class="casa-card">
-                        <div class="casa-icono">🏠</div>
-                        <h3>2</h3>
-                        <p>Nombre</p>
-                        <p>Teléfono</p>
-                        <div class="estado estado-dia">Al día</div>
-                    </article>
+                        <!-- Número de la vivienda -->
+                        <h3>{{ vivienda.id_vivienda }}</h3>
 
-                    <article class="casa-card">
-                        <div class="casa-icono">🏠</div>
-                        <h3>3</h3>
-                        <p>Nombre</p>
-                        <p>Teléfono</p>
-                        <div class="estado estado-pendiente">Pendiente</div>
-                    </article>
+                        <!-- Nombre del residente -->
+                        <p>
+                            {% if vivienda.nombres %}
+                                {{ vivienda.nombres }} {{ vivienda.apellidos }}
+                            {% else %}
+                                Sin residente asignado
+                            {% endif %}
+                        </p>
 
-                    <article class="casa-card">
-                        <div class="casa-icono">🏠</div>
-                        <h3>4</h3>
-                        <p>Nombre</p>
-                        <p>Teléfono</p>
-                        <div class="estado estado-pendiente">Pendiente</div>
+                        <!-- Estado financiero -->
+                        {% if vivienda.estado_financiero == 'al dia' %}
+                            <div class="estado estado-dia">Al día</div>
+                        {% elif vivienda.estado_financiero == 'pendiente' %}
+                            <div class="estado estado-pendiente">Pendiente</div>
+                        {% elif vivienda.estado_financiero == 'en mora' %}
+                            <div class="estado estado-mora">En mora</div>
+                        {% else %}
+                            <div class="estado estado-pendiente">Sin estado</div>
+                        {% endif %}
                     </article>
-
-                    <article class="casa-card">
-                        <div class="casa-icono">🏠</div>
-                        <h3>5</h3>
-                        <p>Nombre</p>
-                        <p>Teléfono</p>
-                        <div class="estado estado-mora">En mora</div>
-                    </article>
-
-                    <article class="casa-card">
-                        <div class="casa-icono">🏠</div>
-                        <h3>6</h3>
-                        <p>Nombre</p>
-                        <p>Teléfono</p>
-                        <div class="estado estado-pendiente">Pendiente</div>
-                    </article>
-
-                    <article class="casa-card">
-                        <div class="casa-icono">🏠</div>
-                        <h3>7</h3>
-                        <p>Nombre</p>
-                        <p>Teléfono</p>
-                        <div class="estado estado-dia">Al día</div>
-                    </article>
-
-                    <article class="casa-card">
-                        <div class="casa-icono">🏠</div>
-                        <h3>8</h3>
-                        <p>Nombre</p>
-                        <p>Teléfono</p>
-                        <div class="estado estado-dia">Al día</div>
-                    </article>
-
-                    <article class="casa-card">
-                        <div class="casa-icono">🏠</div>
-                        <h3>9</h3>
-                        <p>Nombre</p>
-                        <p>Teléfono</p>
-                        <div class="estado estado-pendiente">Pendiente</div>
-                    </article>
-
-                    <article class="casa-card">
-                        <div class="casa-icono">🏠</div>
-                        <h3>10</h3>
-                        <p>Nombre</p>
-                        <p>Teléfono</p>
-                        <div class="estado estado-pendiente">Pendiente</div>
-                    </article>
-
-                    <article class="casa-card">
-                        <div class="casa-icono">🏠</div>
-                        <h3>11</h3>
-                        <p>Nombre</p>
-                        <p>Teléfono</p>
-                        <div class="estado estado-pendiente">Pendiente</div>
-                    </article>
-
-                    <article class="casa-card">
-                        <div class="casa-icono">🏠</div>
-                        <h3>12</h3>
-                        <p>Nombre</p>
-                        <p>Teléfono</p>
-                        <div class="estado estado-pendiente">Pendiente</div>
-                    </article>
+                    {% endfor %}
                 </section>
             </main>
         </div>

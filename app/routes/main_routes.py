@@ -54,22 +54,85 @@ def logout():
 def dashboard_residente():
     if 'rol' not in session or session['rol'] != 'residente':
         return redirect(url_for('main.login'))
-    
+
+    usuario_id = session['usuario_id']
+    nombre = session['nombre']
+
+    conexion = obtener_conexion()
+    if not conexion:
+        return "Error de conexión a la base de datos", 500
+
+    cursor = conexion.cursor(dictionary=True)
+
+    # Obtener datos del usuario y su vivienda
+    query = """
+        SELECT 
+            u.nombres,
+            u.apellidos,
+            u.correo_electronico,
+            v.id_vivienda,
+            v.tiene_vehiculo,
+            v.estado_financiero
+        FROM usuarios u
+        JOIN viviendas v ON u.id_usuario = v.id_usuario
+        WHERE u.id_usuario = %s
+    """
+    cursor.execute(query, (usuario_id,))
+    datos = cursor.fetchone()
+
+    # Contar parqueaderos disponibles
+    cursor.execute("""
+        SELECT COUNT(*) AS disponibles
+        FROM parqueaderos
+        WHERE estado = 'disponible'
+    """)
+    parqueaderos = cursor.fetchone()
+    disponibles = parqueaderos['disponibles']
+
+    cursor.close()
+    conexion.close()
+
     return render_template(
         'dashboard_residente.html',
-        nombre=session.get('nombre'),
-        correo=session.get('correo')
+        nombre=nombre,
+        correo=datos['correo_electronico'],
+        vivienda=datos,
+        parqueaderos_disponibles=disponibles
     )
 
 @main.route('/dashboard-admin')
 def dashboard_admin():
+    # Verificar acceso del administrador
     if 'rol' not in session or session['rol'] != 'administrador':
         return redirect(url_for('main.login'))
-    
+
+    conexion = obtener_conexion()
+    if not conexion:
+        return "Error de conexión a la base de datos", 500
+
+    cursor = conexion.cursor(dictionary=True)
+
+    # Consulta para obtener las viviendas con sus residentes
+    query = """
+        SELECT 
+            v.id_vivienda,
+            u.nombres,
+            u.apellidos,
+            v.estado_financiero
+        FROM viviendas v
+        LEFT JOIN usuarios u 
+            ON v.id_usuario = u.id_usuario
+        ORDER BY v.id_vivienda ASC
+    """
+    cursor.execute(query)
+    viviendas = cursor.fetchall()
+
+    cursor.close()
+    conexion.close()
+
     return render_template(
         'dashboard_admin.html',
-        nombre=session.get('nombre'),
-        correo=session.get('correo')
+        viviendas=viviendas
     )
 
 # VIVIENDAS
