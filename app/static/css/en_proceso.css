@@ -1,0 +1,59 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: Arial, sans-serif;
+    background-color: #f3f3f3;
+}
+
+.proceso-container {
+    min-height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 20px;
+}
+
+.proceso-card {
+    background-color: white;
+    border-radius: 16px;
+    padding: 30px;
+    max-width: 700px;
+    width: 100%;
+    text-align: center;
+    box-shadow: 0 8px 25px rgba(0,0,0,0.12);
+}
+
+.proceso-card img {
+    max-width: 100%;
+    width: 420px;
+    margin-bottom: 20px;
+}
+
+.proceso-card h1 {
+    color: #8f1239;
+    font-size: 28px;
+    margin-bottom: 12px;
+}
+
+.proceso-card p {
+    font-size: 18px;
+    color: #444;
+    margin-bottom: 20px;
+}
+
+.proceso-card a {
+    display: inline-block;
+    background-color: #8f1239;
+    color: white;
+    text-decoration: none;
+    padding: 12px 24px;
+    border-radius: 10px;
+}
+
+.proceso-card a:hover {
+    background-color: #74102f;
+}

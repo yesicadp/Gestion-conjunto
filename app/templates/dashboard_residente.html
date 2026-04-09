@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard Residente - El Ciprés</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/dashboard.css') }}">
+</head>
+<body>
+
+    <!-- CONTENEDOR PRINCIPAL -->
+    <div class="contenedor-principal">
+
+        <!-- HEADER -->
+        <header class="header">
+            <div class="logo-area">
+                <p class="texto-superior">Agrupación de Vivienda</p>
+                <h1 class="logo">El Ciprés</h1>
+            </div>
+
+            <div class="bienvenida-area">
+                <p>Bienvenido a El Ciprés</p>
+                <h2>Casa 3</h2>
+            </div>
+
+            <div class="iconos-area">
+                <a class="btn-header" href="#">🔗</a>
+                <a class="btn-header" href="#">💬</a>
+                <a class="btn-header" href="#">⚙</a>
+                <div class="perfil-usuario">
+                    <img src="{{ url_for('static', filename='img/perfil.png') }}" alt="Foto de perfil del usuario">
+                </div>
+            </div>
+        </header>
+
+        <!-- CONTENIDO -->
+        <div class="contenido-general">
+
+            <!-- MENÚ LATERAL -->
+            <aside class="sidebar">
+                <nav>
+                    <ul>
+                        <li><a href="{{ url_for('main.dashboard_residente') }}">Inicio</a></li>
+                        <li><a href="{{ url_for('main.en_proceso') }}">Pagos</a></li>
+                        <li><a href="{{ url_for('main.en_proceso') }}">Parqueaderos</a></li>
+                        <li><a href="{{ url_for('main.en_proceso') }}">Reservas</a></li>
+                        <li><a href="{{ url_for('main.en_proceso') }}">Anuncios</a></li>
+                        <li><a href="{{ url_for('main.logout') }}">Cerrar sesión</a></li>
+                    </ul>
+                </nav>
+            </aside>
+
+            <!-- SECCIÓN PRINCIPAL -->
+            <main class="main">
+
+                <!-- TÍTULO DE INICIO -->
+                <section class="saludo">
+                    <h2>Inicio</h2>
+                    <h3>Hola {{ nombre }}!</h3>
+                </section>
+
+                <!-- AVISO IMPORTANTE -->
+                <section class="aviso-importante">
+                    <div class="imagen-aviso">
+                        <img src="{{ url_for('static', filename='img/corte-agua.jpg') }}" alt="Imagen del aviso">
+                    </div>
+                    <div class="texto-aviso">
+                        <h3>Cortes de Agua</h3>
+                        <p>
+                            En todas las viviendas del día 1 de abril al 7 de abril
+                            se hará cortes de agua por mantenimiento.
+                        </p>
+                    </div>
+                </section>
+
+                <!-- ZONA DE TARJETAS -->
+                <section class="panel-informacion">
+
+                    <!-- DATOS DE LA VIVIENDA -->
+                    <article class="card datos-vivienda">
+                        <h3>Datos de la Vivienda</h3>
+
+                        <p><strong>Nombre de propietario</strong></p>
+                        <p>{{ nombre }}</p>
+
+                        <p><strong>Teléfono</strong></p>
+                        <p>300 123 4567</p>
+
+                        <p><strong>Correo Electrónico</strong></p>
+                        <p>{{ correo }}</p>
+
+                        <p><strong>Número de Vivienda</strong></p>
+                        <p>Interior 3</p>
+
+                        <p><strong>Parqueadero Asignado</strong></p>
+                        <p>No</p>
+                    </article>
+
+                    <!-- CALENDARIO -->
+                    <article class="card calendario">
+                        <div class="calendario-header">
+                            <button type="button">&lt;</button>
+                            <select>
+                                <option>Sep</option>
+                            </select>
+                            <select>
+                                <option>2025</option>
+                            </select>
+                            <button type="button">&gt;</button>
+                        </div>
+
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Su</th>
+                                    <th>Mo</th>
+                                    <th>Tu</th>
+                                    <th>We</th>
+                                    <th>Th</th>
+                                    <th>Fr</th>
+                                    <th>Sa</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td></td>
+                                    <td>1</td>
+                                    <td>2</td>
+                                    <td>3</td>
+                                    <td>4</td>
+                                    <td>5</td>
+                                    <td>6</td>
+                                </tr>
+                                <tr>
+                                    <td>7</td>
+                                    <td>8</td>
+                                    <td>9</td>
+                                    <td>10</td>
+                                    <td>11</td>
+                                    <td>12</td>
+                                    <td>13</td>
+                                </tr>
+                                <tr>
+                                    <td>14</td>
+                                    <td>15</td>
+                                    <td>16</td>
+                                    <td>17</td>
+                                    <td>18</td>
+                                    <td>19</td>
+                                    <td>20</td>
+                                </tr>
+                                <tr>
+                                    <td>21</td>
+                                    <td>22</td>
+                                    <td>23</td>
+                                    <td>24</td>
+                                    <td>25</td>
+                                    <td>26</td>
+                                    <td>27</td>
+                                </tr>
+                                <tr>
+                                    <td>28</td>
+                                    <td>29</td>
+                                    <td>30</td>
+                                    <td></td>
+                                    <td></td>
+                                    <td></td>
+                                    <td></td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </article>
+
+                    <!-- SALÓN COMUNAL -->
+                    <article class="card salon-comunal">
+                        <h3>Salon Comunal</h3>
+                        <p><strong>Reservas:</strong></p>
+                        <ul>
+                            <li>10 de abril de 2026</li>
+                            <li>12:00 hasta 20:00</li>
+                        </ul>
+                    </article>
+
+                    <!-- PARQUEADEROS DISPONIBLES -->
+                    <article class="card parqueaderos-disponibles">
+                        <h3>Parqueaderos Disponibles</h3>
+                        <p class="numero-parqueaderos">8</p>
+                    </article>
+
+                </section>
+
+                <!-- RESUMEN DE PAGOS -->
+                <section class="resumen-pagos">
+
+                    <article class="card estado-pago">
+                        <h4>Estado de Pago</h4>
+                        <p>Pendiente</p>
+                    </article>
+
+                    <article class="card fecha-limite">
+                        <h4>Fecha Límite de Pago</h4>
+                        <p>15 - ABR - 2026</p>
+                    </article>
+
+                    <article class="card total-pagar">
+                        <h4>Total a Pagar</h4>
+                        <p>$ 25.000</p>
+                    </article>
+
+                </section>
+
+            </main>
+        </div>
+
+        <!-- FOOTER -->
+        <footer class="footer">
+            <div class="footer-contenido">
+                <p>A.J.Y.T</p>
+                <p>Versión 2026</p>
+            </div>
+        </footer>
+
+    </div>
+
+</body>
+</html>

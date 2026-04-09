@@ -6,7 +6,7 @@ main = Blueprint('main', __name__)
 
 @main.route('/')
 def inicio():
-    return "Ruta de Inicio - Conjunto Ciprés"
+    return redirect(url_for('main.login'))
 
 # LOGIN 
 @main.route('/login', methods=['GET', 'POST'])
@@ -18,9 +18,15 @@ def login():
         conexion = obtener_conexion()
         if conexion:
             cursor = conexion.cursor(dictionary=True)
-            query = "SELECT id_usuario, nombres, apellidos, contrasena, rol FROM usuarios WHERE correo_electronico = %s"
+
+            query = """
+                SELECT id_usuario, nombres, apellidos, correo_electronico, contrasena, rol
+                FROM usuarios
+                WHERE correo_electronico = %s
+            """
             cursor.execute(query, (correo_ingresado,))
             usuario = cursor.fetchone()
+
             cursor.close()
             conexion.close()
 
@@ -28,15 +34,16 @@ def login():
                 session['usuario_id'] = usuario['id_usuario']
                 session['nombre'] = f"{usuario['nombres']} {usuario['apellidos']}"
                 session['rol'] = usuario['rol']
-                
+                session['correo'] = usuario['correo_electronico']
+
                 if usuario['rol'] == 'administrador':
                     return redirect(url_for('main.dashboard_admin'))
                 else:
                     return redirect(url_for('main.dashboard_residente'))
-        
-        return "Correo o contraseña incorrectos."
 
-    return "Página de Login"
+        return render_template('login.html', error="Correo o contraseña incorrectos.")
+
+    return render_template('login.html')
 
 @main.route('/logout')
 def logout():
@@ -47,13 +54,23 @@ def logout():
 def dashboard_residente():
     if 'rol' not in session or session['rol'] != 'residente':
         return redirect(url_for('main.login'))
-    return f"Bienvenido al Panel del Residente, {session['nombre']}"
+    
+    return render_template(
+        'dashboard_residente.html',
+        nombre=session.get('nombre'),
+        correo=session.get('correo')
+    )
 
 @main.route('/dashboard-admin')
 def dashboard_admin():
     if 'rol' not in session or session['rol'] != 'administrador':
         return redirect(url_for('main.login'))
-    return f"Bienvenido al Panel del Administrador, {session['nombre']}"
+    
+    return render_template(
+        'dashboard_admin.html',
+        nombre=session.get('nombre'),
+        correo=session.get('correo')
+    )
 
 # VIVIENDAS
 @main.route('/viviendas', methods=['GET'])
@@ -150,3 +167,9 @@ def gestion_anuncios():
     cursor.close()
     conexion.close()
     return jsonify({"anuncios": anuncios})
+
+@main.route('/en-proceso')
+def en_proceso():
+    if 'usuario_id' not in session:
+        return redirect(url_for('main.login'))
+    return render_template('en_proceso.html')

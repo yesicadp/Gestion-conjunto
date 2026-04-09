@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard Administrador - El Ciprés</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/dashboard.css') }}">
+</head>
+<body>
+
+    <div class="contenedor-principal">
+
+        <header class="header">
+            <div class="logo-area">
+                <p class="texto-superior">Agrupación de Vivienda</p>
+                <h1 class="logo">El Ciprés</h1>
+            </div>
+
+            <div class="bienvenida-area">
+                <p>Bienvenido a El Ciprés</p>
+                <h2>Administrador</h2>
+
+                <div class="busqueda-area">
+                    <input type="text" placeholder="Buscar">
+                </div>
+            </div>
+
+            <div class="iconos-area">
+                <a class="btn-header" href="#">🔗</a>
+                <a class="btn-header" href="#">💬</a>
+                <a class="btn-header" href="#">⚙</a>
+                <div class="perfil-usuario">
+                    <img src="{{ url_for('static', filename='img/perfil.png') }}" alt="Foto de perfil del usuario">
+                </div>
+            </div>
+        </header>
+
+        <div class="contenido-general">
+            <aside class="sidebar">
+                <nav>
+                    <ul>
+                        <li><a href="{{ url_for('main.dashboard_admin') }}">Inicio</a></li>
+                        <li><a href="{{ url_for('main.en_proceso') }}">Pagos</a></li>
+                        <li><a href="{{ url_for('main.en_proceso') }}">Parqueaderos</a></li>
+                        <li><a href="{{ url_for('main.en_proceso') }}">Reservas</a></li>
+                        <li><a href="{{ url_for('main.en_proceso') }}">Anuncios</a></li>
+                        <li><a href="{{ url_for('main.logout') }}">Cerrar sesión</a></li>
+                    </ul>
+                </nav>
+            </aside>
+
+            <main class="main">
+                <section class="saludo">
+                    <h2>Inicio</h2>
+                </section>
+
+                <section class="grid-viviendas">
+                    <article class="casa-card">
+                        <div class="casa-icono">🏠</div>
+                        <h3>1</h3>
+                        <p>Nombre</p>
+                        <p>Teléfono</p>
+                        <div class="estado estado-dia">Al día</div>
+                    </article>
+
+                    <article class="casa-card">
+                        <div class="casa-icono">🏠</div>
+                        <h3>2</h3>
+                        <p>Nombre</p>
+                        <p>Teléfono</p>
+                        <div class="estado estado-dia">Al día</div>
+                    </article>
+
+                    <article class="casa-card">
+                        <div class="casa-icono">🏠</div>
+                        <h3>3</h3>
+                        <p>Nombre</p>
+                        <p>Teléfono</p>
+                        <div class="estado estado-pendiente">Pendiente</div>
+                    </article>
+
+                    <article class="casa-card">
+                        <div class="casa-icono">🏠</div>
+                        <h3>4</h3>
+                        <p>Nombre</p>
+                        <p>Teléfono</p>
+                        <div class="estado estado-pendiente">Pendiente</div>
+                    </article>
+
+                    <article class="casa-card">
+                        <div class="casa-icono">🏠</div>
+                        <h3>5</h3>
+                        <p>Nombre</p>
+                        <p>Teléfono</p>
+                        <div class="estado estado-mora">En mora</div>
+                    </article>
+
+                    <article class="casa-card">
+                        <div class="casa-icono">🏠</div>
+                        <h3>6</h3>
+                        <p>Nombre</p>
+                        <p>Teléfono</p>
+                        <div class="estado estado-pendiente">Pendiente</div>
+                    </article>
+
+                    <article class="casa-card">
+                        <div class="casa-icono">🏠</div>
+                        <h3>7</h3>
+                        <p>Nombre</p>
+                        <p>Teléfono</p>
+                        <div class="estado estado-dia">Al día</div>
+                    </article>
+
+                    <article class="casa-card">
+                        <div class="casa-icono">🏠</div>
+                        <h3>8</h3>
+                        <p>Nombre</p>
+                        <p>Teléfono</p>
+                        <div class="estado estado-dia">Al día</div>
+                    </article>
+
+                    <article class="casa-card">
+                        <div class="casa-icono">🏠</div>
+                        <h3>9</h3>
+                        <p>Nombre</p>
+                        <p>Teléfono</p>
+                        <div class="estado estado-pendiente">Pendiente</div>
+                    </article>
+
+                    <article class="casa-card">
+                        <div class="casa-icono">🏠</div>
+                        <h3>10</h3>
+                        <p>Nombre</p>
+                        <p>Teléfono</p>
+                        <div class="estado estado-pendiente">Pendiente</div>
+                    </article>
+
+                    <article class="casa-card">
+                        <div class="casa-icono">🏠</div>
+                        <h3>11</h3>
+                        <p>Nombre</p>
+                        <p>Teléfono</p>
+                        <div class="estado estado-pendiente">Pendiente</div>
+                    </article>
+
+                    <article class="casa-card">
+                        <div class="casa-icono">🏠</div>
+                        <h3>12</h3>
+                        <p>Nombre</p>
+                        <p>Teléfono</p>
+                        <div class="estado estado-pendiente">Pendiente</div>
+                    </article>
+                </section>
+            </main>
+        </div>
+
+        <footer class="footer">
+            <div class="footer-contenido">
+                <p>A.J.Y.T</p>
+                <p>Versión 2026</p>
+            </div>
+        </footer>
+
+    </div>
+
+</body>
+</html>
