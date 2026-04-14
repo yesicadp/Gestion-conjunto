@@ -5,44 +5,47 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Login - El Ciprés</title>
 
-    <!-- CSS -->
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/login.css') }}">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Great+Vibes&family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/login.css') }}?v=2">
 </head>
 <body>
 
-    <!-- FONDO -->
     <div class="fondo">
+        <div class="overlay"></div>
 
-        <!-- CONTENEDOR PRINCIPAL -->
         <div class="login-container">
 
-            <!-- LADO IZQUIERDO -->
             <div class="login-left">
                 <p>Agrupación de Vivienda</p>
                 <h1>El Ciprés</h1>
             </div>
 
-            <!-- LADO DERECHO -->
             <div class="login-right">
+                <div class="form-encabezado">
+                    <h2>Iniciar sesión</h2>
+                    <p>Ingresa tus datos para continuar</p>
+                </div>
 
-                <!-- FORMULARIO -->
-                <form action="http://127.0.0.1:5000/login" method="POST">
-                    <label>Correo</label>
-                    <input type="email" name="correo" placeholder="Ingresa tu correo" required>
-                    <label>Contraseña</label>
-                    <input type="password" name="contrasena" placeholder="Ingresa tu contraseña" required>
+                <form action="{{ url_for('main.login') }}" method="POST">
+                    <label for="correo">Correo</label>
+                    <input type="email" id="correo" name="correo" placeholder="Ingresa tu correo" required>
+
+                    <label for="contrasena">Contraseña</label>
+                    <input type="password" id="contrasena" name="contrasena" placeholder="Ingresa tu contraseña" required>
+
                     <button type="submit">Ingresar</button>
                 </form>
 
                 <div class="extras">
-                    <a href="#">Registrar</a>
-                    <a href="#">¿Ha olvidado su contraseña?</a>
+                    <a href="{{ url_for('main.en_proceso') }}">Registrar</a>
+                    <a href="{{ url_for('main.en_proceso') }}">¿Olvidaste tu contraseña?</a>
                 </div>
-
             </div>
 
         </div>
-
     </div>
 
 </body>

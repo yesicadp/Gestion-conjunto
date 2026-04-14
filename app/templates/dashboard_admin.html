@@ -4,8 +4,10 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Dashboard Administrador - El Ciprés</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/dashboard.css') }}">
-</head>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/dashboard.css', v=2) }}">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Allura&family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
 <body>
 
     <div class="contenedor-principal">
@@ -18,7 +20,7 @@
 
             <div class="bienvenida-area">
                 <p>Bienvenido a El Ciprés</p>
-                <h2>Administrador</h2>
+                <h2>Panel de Administración</h2>
 
                 <div class="busqueda-area">
                     <input type="text" placeholder="Buscar">
@@ -26,12 +28,12 @@
             </div>
 
             <div class="iconos-area">
-                <a class="btn-header" href="#">🔗</a>
-                <a class="btn-header" href="#">💬</a>
-                <a class="btn-header" href="#">⚙</a>
-                <div class="perfil-usuario">
-                    <img src="{{ url_for('static', filename='img/perfil.png') }}" alt="Foto de perfil del usuario">
-                </div>
+                <a class="btn-header" href="{{ url_for('main.en_proceso') }}">🔗</a>
+                <a class="btn-header" href="{{ url_for('main.en_proceso') }}">💬</a>
+                <a class="btn-header" href="{{ url_for('main.en_proceso') }}">⚙</a>
+                <a class="btn-header perfil-btn" href="{{ url_for('main.en_proceso') }}">
+                    <img src="{{ url_for('static', filename='img/perfil.png') }}" alt="Perfil">
+                </a>
             </div>
         </header>
 
@@ -60,7 +62,7 @@
                         <div class="casa-icono">🏠</div>
 
                         <!-- Número de la vivienda -->
-                        <h3>{{ vivienda.id_vivienda }}</h3>
+                        <h3>Casa {{ vivienda.id_vivienda }}</h3>
 
                         <!-- Nombre del residente -->
                         <p>

@@ -4,7 +4,10 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Dashboard Residente - El Ciprés</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/dashboard.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/dashboard.css', v=1) }}">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Allura&family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
 </head>
 <body>
 
@@ -28,15 +31,18 @@
                         Sin asignar
                     {% endif %}
                 </h2>
+                <div class="busqueda-area">
+                    <input type="text" placeholder="Buscar">
+                </div>
             </div>
 
             <div class="iconos-area">
-                <a class="btn-header" href="#">🔗</a>
-                <a class="btn-header" href="#">💬</a>
-                <a class="btn-header" href="#">⚙</a>
-                <div class="perfil-usuario">
-                    <img src="{{ url_for('static', filename='img/perfil.png') }}" alt="Foto de perfil del usuario">
-                </div>
+                <a class="btn-header" href="{{ url_for('main.en_proceso') }}">🔗</a>
+                <a class="btn-header" href="{{ url_for('main.en_proceso') }}">💬</a>
+                <a class="btn-header" href="{{ url_for('main.en_proceso') }}">⚙</a>
+                <a class="btn-header perfil-btn" href="{{ url_for('main.en_proceso') }}">
+                    <img src="{{ url_for('static', filename='img/perfil.png') }}" alt="Perfil">
+                </a>
             </div>
         </header>
 
@@ -63,7 +69,7 @@
                 <!-- TÍTULO DE INICIO -->
                 <section class="saludo">
                     <h2>Inicio</h2>
-                    <h3>Hola {{ nombre }}!</h3>
+                    <h3>Hola, {{ nombre }}.</h3>
                 </section>
 
                 <!-- AVISO IMPORTANTE -->
@@ -87,7 +93,7 @@
                     <article class="card datos-vivienda">
                         <h3>Datos de la Vivienda</h3>
 
-                        <p><strong>Nombre de propietario</strong></p>
+                        <p><strong>Nombre del residente</strong></p>
                         <p>{{ nombre }}</p>
 
                         <p><strong>Teléfono</strong></p>
@@ -106,7 +112,7 @@
                             {% endif %}
                         </p>
 
-                        <p><strong>Parqueadero Asignado</strong></p>
+                        <p><strong>Tiene vehículo</strong></p>
                         <p>
                             {% if vivienda and vivienda.tiene_vehiculo %}
                                 Sí

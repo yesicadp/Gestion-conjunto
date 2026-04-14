@@ -10,7 +10,7 @@ def obtener_conexion():
         conexion = mysql.connector.connect(
             host='localhost',
             user='root',
-            password='JAlPL141618oN*', 
+            password='1234', 
             database='el_cipres'  # Conectamos a la DB de Jhonsito
         )
         
