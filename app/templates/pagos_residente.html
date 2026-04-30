@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard Residente - El Ciprés</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/dashboard.css', v=1) }}">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Allura&family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+
+    <!-- CONTENEDOR PRINCIPAL -->
+    <div class="contenedor-principal">
+
+        <!-- HEADER -->
+        <header class="header">
+            <div class="logo-area">
+                <p class="texto-superior">Agrupación de Vivienda</p>
+                <h1 class="logo">El Ciprés</h1>
+            </div>
+
+            <div class="bienvenida-area">
+                <h5 class="text-center">Bienvenido a El Ciprés</h5>
+                <h2 class="text-center fw-bold">
+                    Casa 
+                    {% if vivienda %}
+                        {{ vivienda.id_vivienda }}
+                    {% else %}
+                        Sin asignar
+                    {% endif %}
+                </h2>
+                <div class="busqueda-area">
+                    <input type="text" placeholder="Buscar">
+                </div>
+            </div>
+
+            <div class="iconos-area">
+                <a class="btn-header" href="{{ url_for('main.en_proceso') }}">🔗</a>
+                <a class="btn-header" href="{{ url_for('main.en_proceso') }}">💬</a>
+                <a class="btn-header" href="{{ url_for('main.en_proceso') }}">⚙</a>
+                <a class="btn-header perfil-btn" href="{{ url_for('main.en_proceso') }}">
+                    <img src="{{ url_for('static', filename='img/perfil.png') }}" alt="Perfil">
+                </a>
+            </div>
+        </header>
+
+        <!-- CONTENIDO -->
+        <div class="contenido-general">
+
+            <!-- MENÚ LATERAL -->
+            <aside class="sidebar">
+                <nav>
+                    <ul>
+                        <li><a href="{{ url_for('main.dashboard_residente') }}">Inicio</a></li>
+                        <li><a href="{{ url_for('main.pagos_residente') }}">Pagos</a></li>
+                        <li><a href="{{ url_for('main.en_proceso') }}">Parqueaderos</a></li>
+                        <li><a href="{{ url_for('main.en_proceso') }}">Reservas</a></li>
+                        <li><a href="{{ url_for('main.en_proceso') }}">Anuncios</a></li>
+                        <li><a href="{{ url_for('main.logout') }}">Cerrar sesión</a></li>
+                    </ul>
+                </nav>
+            </aside>
+
+            <!-- SECCIÓN PRINCIPAL -->
+            <main class="main">
+
+                <section class="pagos-pagina">
+
+                    <h2 class="titulo-pagos">Pagos</h2>
+
+                    <section class="pagos-contenido">
+
+                        <div class="formulario-pse">
+                            <h2>Pago por PSE</h2>
+
+                            <label>Nombres y Apellidos</label>
+                            <input type="text" value="{{ nombre }}" readonly>
+
+                            <div class="fila-formulario">
+                                <div>
+                                    <label>Tipo de documento</label>
+                                    <input type="text">
+                                </div>
+
+                                <div>
+                                    <label>Número de documento</label>
+                                    <input type="text">
+                                </div>
+                            </div>
+
+                            <label>Correo</label>
+                            <input type="email" value="{{ correo }}" readonly>
+
+                            <label>Celular</label>
+                            <input type="text">
+
+                            <div class="parte-inferior-pago">
+                                <div>
+                                    <h3>Detalles del Pago:</h3>
+                                    <p><strong>Vivienda:</strong> Interior {{ vivienda.id_vivienda }}</p>
+                                    <p><strong>Mes:</strong> Marzo</p>
+                                    <p><strong>Administración:</strong> $40.000</p>
+                                    <p><strong>Salón Comunal:</strong> $200.000</p>
+                                    <p><strong>Mora:</strong> $5.000</p>
+
+                                    <h2>Total a pagar: $245.000</h2>
+                                </div>
+
+                                <div>
+                                    <h3>Medio de Pago:</h3>
+
+                                    <label class="pse-opcion">
+                                        <input type="radio" checked>
+                                        PSE
+                                    </label>
+
+                                    <button class="btn-pagar">PAGAR</button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="historial-pse">
+                            <h2>Historial</h2>
+
+                            <div class="encabezado-historial">
+                                <span>Fecha</span>
+                                <span>Valor</span>
+                            </div>
+
+                            <div class="fila-historial">
+                                <span>Febrero 2026</span>
+                                <span>$ 25.000</span>
+                            </div>
+
+                            <div class="fila-historial">
+                                <span>Enero 2026</span>
+                                <span>$ 25.000</span>
+                            </div>
+
+                            <div class="fila-historial">
+                                <span>Diciembre 2025</span>
+                                <span>$ 25.000</span>
+                            </div>
+
+                            <div class="fila-historial">
+                                <span>Noviembre 2025</span>
+                                <span>$ 25.000</span>
+                            </div>
+                        </div>
+
+                    </section>
+
+                </section>
+
+            </main>
+
+        </div>
+
+        <!-- FOOTER -->
+        <footer class="footer">
+            <div class="footer-contenido">
+                <p>A.J.Y.T</p>
+                <p>Versión 2026</p>
+            </div>
+        </footer>
+
+    </div>
+
+</body>
+</html>

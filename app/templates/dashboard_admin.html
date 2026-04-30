@@ -58,7 +58,7 @@
 
                 <section class="grid-viviendas">
                     {% for vivienda in viviendas %}
-                    <article class="casa-card">
+                    <a class="casa-card" href="{{ url_for('main.detalle_vivienda', id_vivienda=vivienda.id_vivienda) }}">
                         <div class="casa-icono">🏠</div>
 
                         <!-- Número de la vivienda -->
@@ -83,7 +83,7 @@
                         {% else %}
                             <div class="estado estado-pendiente">Sin estado</div>
                         {% endif %}
-                    </article>
+                    </a>
                     {% endfor %}
                 </section>
             </main>

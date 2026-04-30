@@ -1,0 +1,15 @@
+<h1>Casa {{ vivienda.id_vivienda }}</h1>
+
+<p><strong>Residente:</strong>
+    {% if vivienda.nombres %}
+        {{ vivienda.nombres }} {{ vivienda.apellidos }}
+    {% else %}
+        Sin residente asignado
+    {% endif %}
+</p>
+
+<p><strong>Correo:</strong> {{ vivienda.correo_electronico }}</p>
+<p><strong>Estado financiero:</strong> {{ vivienda.estado_financiero }}</p>
+<p><strong>Tiene vehículo:</strong> {{ 'Sí' if vivienda.tiene_vehiculo else 'No' }}</p>
+
+<a href="{{ url_for('main.dashboard_admin') }}">Volver al dashboard</a>

@@ -148,6 +148,37 @@ def listado_viviendas():
         return jsonify({"viviendas": viviendas})
     return jsonify({"error": "No hay conexión"}), 500
 
+@main.route('/admin/vivienda/<int:id_vivienda>')
+def detalle_vivienda(id_vivienda):
+    if 'rol' not in session or session['rol'] != 'administrador':
+        return redirect(url_for('main.login'))
+
+    conexion = obtener_conexion()
+    if not conexion:
+        return "Error de conexión a la base de datos", 500
+
+    cursor = conexion.cursor(dictionary=True)
+
+    query = """
+        SELECT 
+            v.id_vivienda,
+            v.estado_financiero,
+            v.tiene_vehiculo,
+            u.nombres,
+            u.apellidos,
+            u.correo_electronico
+        FROM viviendas v
+        LEFT JOIN usuarios u ON v.id_usuario = u.id_usuario
+        WHERE v.id_vivienda = %s
+    """
+    cursor.execute(query, (id_vivienda,))
+    vivienda = cursor.fetchone()
+
+    cursor.close()
+    conexion.close()
+
+    return render_template('detalle_vivienda.html', vivienda=vivienda)
+
 # FACTURAS
 @main.route('/pagos', methods=['GET', 'POST'])
 def gestion_pagos():
@@ -178,6 +209,44 @@ def gestion_pagos():
     cursor.close()
     conexion.close()
     return jsonify({"mensaje": mensaje}), 201
+
+@main.route('/pagos-residente')
+def pagos_residente():
+    if 'rol' not in session or session['rol'] != 'residente':
+        return redirect(url_for('main.login'))
+
+    usuario_id = session['usuario_id']
+    nombre = session['nombre']
+
+    conexion = obtener_conexion()
+    if not conexion:
+        return "Error de conexión a la base de datos", 500
+
+    cursor = conexion.cursor(dictionary=True)
+
+    query = """
+        SELECT 
+            u.nombres,
+            u.apellidos,
+            u.correo_electronico,
+            v.id_vivienda,
+            v.estado_financiero
+        FROM usuarios u
+        JOIN viviendas v ON u.id_usuario = v.id_usuario
+        WHERE u.id_usuario = %s
+    """
+    cursor.execute(query, (usuario_id,))
+    vivienda = cursor.fetchone()
+
+    cursor.close()
+    conexion.close()
+
+    return render_template(
+        'pagos_residente.html',
+        nombre=nombre,
+        correo=vivienda['correo_electronico'],
+        vivienda=vivienda
+    )
 
 # RESERVAS
 @main.route('/reservas', methods=['GET', 'POST'])

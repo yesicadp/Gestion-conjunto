@@ -316,6 +316,11 @@ body {
     gap: 10px;
 }
 
+.casa-card {
+    text-decoration: none;
+    color: inherit;
+}
+
 @media (max-width: 1200px) {
     .panel-informacion,
     .admin-grid,
@@ -447,4 +452,101 @@ body {
     .busqueda-area input {
         width: 100%;
     }
+}
+
+.pagos-pagina {
+    width: 100%;
+}
+
+.titulo-pagos {
+    color: #8f1239;
+    font-size: 32px;
+    margin-bottom: 15px;
+}
+
+.pagos-contenido {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 18px;
+}
+
+.formulario-pse,
+.historial-pse {
+    background: #fff;
+    border: 2px solid #b8b8b8;
+    border-radius: 12px;
+    padding: 18px;
+}
+
+.formulario-pse h2,
+.historial-pse h2 {
+    text-align: center;
+    margin-bottom: 15px;
+}
+
+.formulario-pse label {
+    font-weight: 600;
+    font-size: 14px;
+}
+
+.formulario-pse input[type="text"],
+.formulario-pse input[type="email"] {
+    width: 100%;
+    height: 28px;
+    border: 1px solid #b8b8b8;
+    border-radius: 10px;
+    margin-bottom: 12px;
+    padding: 5px 10px;
+}
+
+.fila-formulario {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+}
+
+.parte-inferior-pago {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 25px;
+    margin-top: 15px;
+}
+
+.parte-inferior-pago h3,
+.encabezado-historial {
+    color: #8f1239;
+}
+
+.parte-inferior-pago p {
+    margin: 2px 0;
+}
+
+.pse-opcion {
+    display: block;
+    margin: 15px 0;
+}
+
+.btn-pagar {
+    background: #0d8bff;
+    color: white;
+    border: none;
+    border-radius: 20px;
+    padding: 10px 35px;
+    cursor: pointer;
+}
+
+.historial-pse {
+    min-height: 410px;
+}
+
+.encabezado-historial,
+.fila-historial {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    padding: 14px 35px;
+    font-weight: 600;
+}
+
+.fila-historial {
+    color: #111;
 }
