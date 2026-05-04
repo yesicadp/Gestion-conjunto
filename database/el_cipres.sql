@@ -8,7 +8,9 @@ CREATE TABLE usuarios (
     apellidos VARCHAR(50) NOT NULL,
     correo_electronico VARCHAR(100) NOT NULL UNIQUE,
     contrasena VARCHAR(255) NOT NULL,
-    rol ENUM('administrador', 'residente') NOT NULL
+    rol ENUM('administrador', 'residente') NOT NULL,
+    codigo_recuperacion VARCHAR(8) NULL,
+    vencimiento_codigo DATETIME NULL
 );
 
 CREATE TABLE viviendas (

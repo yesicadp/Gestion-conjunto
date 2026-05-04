@@ -1,6 +1,11 @@
 from flask import Blueprint, render_template, request, redirect, url_for, jsonify, session
 from database import obtener_conexion
-from datetime import datetime
+from datetime import datetime, timedelta
+from werkzeug.security import check_password_hash, generate_password_hash
+import smtplib
+from email.mime.text import MIMEText
+import string
+import secrets
 
 main = Blueprint('main', __name__)
 
@@ -30,7 +35,7 @@ def login():
             cursor.close()
             conexion.close()
 
-            if usuario and usuario['contrasena'] == contrasena_ingresada:
+            if usuario and check_password_hash(usuario['contrasena'], contrasena_ingresada):
                 session['usuario_id'] = usuario['id_usuario']
                 session['nombre'] = f"{usuario['nombres']} {usuario['apellidos']}"
                 session['rol'] = usuario['rol']
@@ -417,3 +422,94 @@ def en_proceso():
     if 'usuario_id' not in session:
         return redirect(url_for('main.login'))
     return render_template('en_proceso.html')
+
+def enviar_correo_recuperacion(destinatario, codigo):
+    remitente = "elcipresadmin@gmail.com"
+    password = "dvtd jvca fbxx ncpv"
+
+    msg = MIMEText(f"Hola, tu código de recuperación para el Conjunto Ciprés es: {codigo}. Este código expirará en 15 minutos.")
+    msg['Subject'] = 'Recuperación de Contraseña - Conjunto Ciprés'
+    msg['From'] = remitente
+    msg['To'] = destinatario
+
+    try:
+        server = smtplib.SMTP_SSL('smtp.gmail.com', 465)
+        server.login(remitente, password)
+        server.sendmail(remitente, destinatario, msg.as_string())
+        server.quit()
+        return True
+    except Exception as e:
+        print(f"Error al enviar correo: {e}")
+        return False
+
+# RUTA 1: EL USUARIO PIDE RECUPERAR SU CONTRASEÑA
+@main.route('/solicitar-recuperacion', methods=['POST'])
+def solicitar_recuperacion():
+    correo = request.form.get('correo')
+    
+    conexion = obtener_conexion()
+    cursor = conexion.cursor(dictionary=True)
+    cursor.execute("SELECT id_usuario FROM usuarios WHERE correo_electronico = %s", (correo,))
+    usuario = cursor.fetchone()
+
+    if usuario:
+        # Generamos un código
+        alfabeto = string.ascii_letters + string.digits
+        codigo = ''.join(secrets.choice(alfabeto) for i in range(8))
+        # 2. Le damos 15 minutos de vida a partir de este instante
+        vencimiento = datetime.now() + timedelta(minutes=15)
+        # 3. Guardamos el código en la BD
+        cursor.execute("""
+            UPDATE usuarios 
+            SET codigo_recuperacion = %s, vencimiento_codigo = %s 
+            WHERE correo_electronico = %s
+        """, (codigo, vencimiento, correo))
+        conexion.commit()
+
+        # 4. Enviamos el correo
+        enviar_correo_recuperacion(correo, codigo)
+
+    cursor.close()
+    conexion.close()
+
+    return jsonify({"mensaje": "Si el correo está registrado, recibirás un código de recuperación de 8 caracteres."}), 200
+
+# RUTA 2: EL USUARIO INGRESA EL CÓDIGO Y LA NUEVA CONTRASEÑA 
+@main.route('/cambiar-contrasena', methods=['POST'])
+def cambiar_contrasena():
+    correo = request.form.get('correo')
+    codigo_ingresado = request.form.get('codigo')
+    nueva_contrasena = request.form.get('nueva_contrasena')
+
+    conexion = obtener_conexion()
+    cursor = conexion.cursor(dictionary=True)
+
+    # Buscamos los datos de recuperación del usuario
+    cursor.execute("""
+        SELECT codigo_recuperacion, vencimiento_codigo 
+        FROM usuarios 
+        WHERE correo_electronico = %s
+    """, (correo,))
+    usuario = cursor.fetchone()
+
+    # Validaciones de seguridad
+    if not usuario or usuario['codigo_recuperacion'] != codigo_ingresado:
+        return jsonify({"error": "El código es incorrecto."}), 400
+
+    if datetime.now() > usuario['vencimiento_codigo']:
+        return jsonify({"error": "El código ha expirado. Solicita uno nuevo."}), 400
+
+    nuevo_hash = generate_password_hash(nueva_contrasena)
+    
+    # Actualizamos la BD y limpiamos el código para que no se pueda reusar
+    cursor.execute("""
+        UPDATE usuarios 
+        SET contrasena = %s, codigo_recuperacion = NULL, vencimiento_codigo = NULL 
+        WHERE correo_electronico = %s
+    """, (nuevo_hash, correo))
+    
+    conexion.commit()
+    cursor.close()
+    conexion.close()
+
+    return jsonify({"mensaje": "¡Contraseña actualizada con éxito! Ya puedes iniciar sesión."}), 200
