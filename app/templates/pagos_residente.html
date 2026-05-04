@@ -80,8 +80,11 @@
 
                             <div class="fila-formulario">
                                 <div>
-                                    <label>Tipo de documento</label>
-                                    <input type="text">
+                                    <button type="button"></button>
+                                    <label>Tipo de documento</label><br>
+                                    <select>
+                                        <option>CC</option>
+                                    </select>
                                 </div>
 
                                 <div>
@@ -100,12 +103,19 @@
                                 <div>
                                     <h3>Detalles del Pago:</h3>
                                     <p><strong>Vivienda:</strong> Interior {{ vivienda.id_vivienda }}</p>
-                                    <p><strong>Mes:</strong> Marzo</p>
-                                    <p><strong>Administración:</strong> $40.000</p>
-                                    <p><strong>Salón Comunal:</strong> $200.000</p>
-                                    <p><strong>Mora:</strong> $5.000</p>
+                                    <p><strong>Mes:</strong> {{ mes }}</p>
+                                    {% if factura %}
+                                        <p><strong>Fecha límite:</strong> {{ factura.fecha_limite }}</p>
+                                        <p><strong>Estado:</strong> {{ factura.estado | capitalize }}</p>
+                                    {% endif %}
+                                    {% for d in detalles %}
+                                        <p>
+                                            <strong>{{ d.concepto | capitalize }}:</strong>
+                                            ${{ "{:,}".format(d.monto) }}
+                                        </p>
+                                    {% endfor %}
 
-                                    <h2>Total a pagar: $245.000</h2>
+                                    <h2>Total a pagar: ${{ "{:,}".format(total) }}</h2>
                                 </div>
 
                                 <div>
@@ -127,27 +137,22 @@
                             <div class="encabezado-historial">
                                 <span>Fecha</span>
                                 <span>Valor</span>
+                                <span>Descargar</span>
                             </div>
 
+                            {% for h in historial %}
                             <div class="fila-historial">
-                                <span>Febrero 2026</span>
-                                <span>$ 25.000</span>
+                                <span>
+                                    {{ h.fecha }}
+                                </span>
+                                <span>
+                                    ${{ "{:,}".format(h.total) }}
+                                </span>
+                                <span>
+                                    <button class="btn-descargar" type="button">⬇️</button>
+                                </span>
                             </div>
-
-                            <div class="fila-historial">
-                                <span>Enero 2026</span>
-                                <span>$ 25.000</span>
-                            </div>
-
-                            <div class="fila-historial">
-                                <span>Diciembre 2025</span>
-                                <span>$ 25.000</span>
-                            </div>
-
-                            <div class="fila-historial">
-                                <span>Noviembre 2025</span>
-                                <span>$ 25.000</span>
-                            </div>
+                            {% endfor %}
                         </div>
 
                     </section>

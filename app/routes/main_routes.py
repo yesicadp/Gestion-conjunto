@@ -88,6 +88,52 @@ def dashboard_residente():
     """)
     parqueaderos = cursor.fetchone()
     disponibles = parqueaderos['disponibles']
+    
+    cursor.execute("""
+        SELECT f.id_factura, f.fecha_limite, f.estado
+        FROM facturas f
+        WHERE f.id_vivienda = %s
+        ORDER BY f.fecha DESC
+        LIMIT 1
+    """, (datos['id_vivienda'],))
+    factura = cursor.fetchone()
+
+    if factura:
+        cursor.execute("""
+            SELECT SUM(monto) AS total
+            FROM detalle_facturas
+            WHERE id_factura = %s
+        """, (factura['id_factura'],))
+        resultado_total = cursor.fetchone()
+        total = resultado_total['total'] if resultado_total['total'] else 0
+    else:
+        total = 0
+        
+    # Parqueadero asignado a la vivienda
+    cursor.execute("""
+        SELECT 
+            ap.id_parqueadero,
+            ap.fecha_inicio,
+            ap.fecha_fin
+        FROM asignacion_parqueaderos ap
+        WHERE ap.id_vivienda = %s
+        ORDER BY ap.fecha_inicio DESC
+        LIMIT 1
+    """, (datos['id_vivienda'],))
+    parqueadero_asignado = cursor.fetchone()
+
+
+    # Reservas del residente
+    cursor.execute("""
+        SELECT 
+            fecha_evento,
+            estado
+        FROM reservas
+        WHERE id_usuario = %s
+        ORDER BY fecha_evento DESC
+        LIMIT 3
+    """, (usuario_id,))
+    reservas = cursor.fetchall()
 
     cursor.close()
     conexion.close()
@@ -97,7 +143,11 @@ def dashboard_residente():
         nombre=nombre,
         correo=datos['correo_electronico'],
         vivienda=datos,
-        parqueaderos_disponibles=disponibles
+        parqueaderos_disponibles=disponibles,
+        factura=factura,
+        total=total,
+        parqueadero_asignado=parqueadero_asignado,
+        reservas=reservas
     )
 
 @main.route('/dashboard-admin')
@@ -224,19 +274,76 @@ def pagos_residente():
 
     cursor = conexion.cursor(dictionary=True)
 
-    query = """
-        SELECT 
-            u.nombres,
-            u.apellidos,
-            u.correo_electronico,
-            v.id_vivienda,
-            v.estado_financiero
-        FROM usuarios u
-        JOIN viviendas v ON u.id_usuario = v.id_usuario
-        WHERE u.id_usuario = %s
+    # 1. Obtener vivienda
+    query_vivienda = """
+        SELECT v.id_vivienda
+        FROM viviendas v
+        WHERE v.id_usuario = %s
     """
-    cursor.execute(query, (usuario_id,))
+    cursor.execute(query_vivienda, (usuario_id,))
     vivienda = cursor.fetchone()
+
+    # 2. Obtener factura de esa vivienda (última)
+    query_factura = """
+        SELECT *
+        FROM facturas
+        WHERE id_vivienda = %s
+        ORDER BY fecha DESC
+        LIMIT 1
+    """
+    cursor.execute(query_factura, (vivienda['id_vivienda'],))
+    factura = cursor.fetchone()
+
+    meses = {
+        "January": "Enero", "February": "Febrero", "March": "Marzo",
+        "April": "Abril", "May": "Mayo", "June": "Junio",
+        "July": "Julio", "August": "Agosto", "September": "Septiembre",
+        "October": "Octubre", "November": "Noviembre", "December": "Diciembre"
+    }
+
+    if not factura:
+        detalles = []
+        total = 0
+        mes = "Sin datos"
+    else:
+        fecha = factura['fecha']
+
+        if isinstance(fecha, str):
+            fecha = datetime.strptime(fecha, "%Y-%m-%d")
+
+        mes = fecha.strftime("%B")
+        mes = meses.get(mes, mes)
+
+        cursor.execute("""
+            SELECT concepto, monto
+            FROM detalle_facturas
+            WHERE id_factura = %s
+        """, (factura['id_factura'],))
+        
+        detalles = cursor.fetchall()
+        total = sum(d['monto'] for d in detalles)
+        
+    query_historial = """
+        SELECT f.id_factura, f.fecha, SUM(df.monto) AS total
+        FROM facturas f
+        LEFT JOIN detalle_facturas df ON f.id_factura = df.id_factura
+        WHERE f.id_vivienda = %s
+        GROUP BY f.id_factura, f.fecha
+        ORDER BY f.fecha DESC
+    """
+    cursor.execute(query_historial, (vivienda['id_vivienda'],))
+    historial = cursor.fetchall()
+
+    # Agregar total a cada factura
+    for h in historial:
+        cursor.execute("""
+            SELECT SUM(monto) as total
+            FROM detalle_facturas
+            WHERE id_factura = %s
+        """, (h['id_factura'],))
+        
+        total_factura = cursor.fetchone()
+        h['total'] = total_factura['total'] if total_factura['total'] else 0
 
     cursor.close()
     conexion.close()
@@ -244,8 +351,13 @@ def pagos_residente():
     return render_template(
         'pagos_residente.html',
         nombre=nombre,
-        correo=vivienda['correo_electronico'],
-        vivienda=vivienda
+        correo=session['correo'],
+        vivienda=vivienda,
+        factura=factura,
+        detalles=detalles,
+        total=total,
+        mes=mes,
+        historial=historial
     )
 
 # RESERVAS

@@ -4,10 +4,12 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Dashboard Residente - El Ciprés</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/dashboard.css', v=1) }}">
+
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Allura&family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Great+Vibes&family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/dashboard.css') }}?v=3">
 </head>
 <body>
 
@@ -171,18 +173,33 @@
                     <article class="card salon-comunal">
                         <h3>Salón Comunal</h3>
                         <p><strong>Reservas:</strong></p>
-                        <ul>
-                            <li>10 de abril de 2026</li>
-                            <li>12:00 hasta 20:00</li>
-                        </ul>
+                        {% if reservas %}
+                            <ul>
+                                {% for reserva in reservas %}
+                                    <li>
+                                        {{ reserva.fecha_evento }} - {{ reserva.estado | capitalize }}
+                                    </li>
+                                {% endfor %}
+                            </ul>
+                        {% else %}
+                            <p>No tienes reservas registradas.</p>
+                        {% endif %}
                     </article>
 
                     <!-- PARQUEADEROS DISPONIBLES -->
                     <article class="card parqueaderos-disponibles">
-                        <h3>Parqueaderos Disponibles</h3>
-                        <p class="numero-parqueaderos">
-                            {{ parqueaderos_disponibles }}
-                        </p>
+                        <h3>Parqueadero</h3>
+
+                        {% if parqueadero_asignado %}
+                            <p class="numero-parqueaderos">
+                                #{{ parqueadero_asignado.id_parqueadero }}
+                            </p>
+                            <p>
+                                Asignado hasta {{ parqueadero_asignado.fecha_fin }}
+                            </p>
+                        {% else %}
+                            <p>No tienes parqueadero asignado.</p>
+                        {% endif %}
                     </article>
 
                 </section>
@@ -197,12 +214,18 @@
 
                     <article class="card fecha-limite">
                         <h4>Fecha Límite de Pago</h4>
-                        <p>15 - ABR - 2026</p>
+                        <p>
+                            {% if factura %}
+                                {{ factura.fecha_limite }}
+                            {% else %}
+                                No disponible
+                            {% endif %}
+                        </p>
                     </article>
 
                     <article class="card total-pagar">
                         <h4>Total a Pagar</h4>
-                        <p>$ 25.000</p>
+                        <p>${{ "{:,.0f}".format(total) }}</p>
                     </article>
 
                 </section>
