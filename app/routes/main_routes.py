@@ -235,35 +235,45 @@ def detalle_vivienda(id_vivienda):
     return render_template('detalle_vivienda.html', vivienda=vivienda)
 
 # FACTURAS
-@main.route('/pagos', methods=['GET', 'POST'])
+@main.route('/pagos', methods=['GET'])
 def gestion_pagos():
+    mes = request.args.get('mes')
+
+    if not mes:
+        mes = datetime.now().strftime('%Y-%m')
+
     conexion = obtener_conexion()
-    if not conexion: return jsonify({"error": "No hay conexión"}), 500
-    
     cursor = conexion.cursor(dictionary=True)
-    if request.method == 'POST':
-        id_vivienda = request.form.get('id_vivienda')
-        fecha = request.form.get('fecha')
-        fecha_oportuno = request.form.get('fecha_pago_oportuno')
-        fecha_limite = request.form.get('fecha_limite')
-        estado = request.form.get('estado')
-        query = "INSERT INTO facturas (id_vivienda, fecha, fecha_pago_oportuno, fecha_limite, estado) VALUES (%s, %s, %s, %s, %s)"
-        cursor.execute(query, (id_vivienda, fecha, fecha_oportuno, fecha_limite, estado))
-        conexion.commit()
-        mensaje = "Factura registrada en BD"
-    else:
-        cursor.execute("SELECT * FROM facturas")
-        pagos = cursor.fetchall()
-        # Convertimos las fechas a string para evitar errores JSON
-        for p in pagos:
-            p['fecha'] = str(p['fecha'])
-            p['fecha_pago_oportuno'] = str(p['fecha_pago_oportuno'])
-            p['fecha_limite'] = str(p['fecha_limite'])
-        return jsonify({"pagos": pagos})
+
+    query = """
+        SELECT 
+            f.id_factura,
+            v.id_vivienda,
+            u.nombres,
+            u.apellidos,
+            v.estado_financiero,
+            f.fecha,
+            f.fecha_pago_oportuno,
+            f.fecha_limite,
+            f.estado AS estado_factura
+        FROM viviendas v
+        LEFT JOIN usuarios u ON v.id_usuario = u.id_usuario
+        LEFT JOIN facturas f ON v.id_vivienda = f.id_vivienda
+        WHERE DATE_FORMAT(f.fecha, '%Y-%m') = %s
+        ORDER BY v.id_vivienda ASC
+    """
+
+    cursor.execute(query, (mes,))
+    pagos = cursor.fetchall()
 
     cursor.close()
     conexion.close()
-    return jsonify({"mensaje": mensaje}), 201
+
+    return render_template(
+        'pagos_admin.html',
+        pagos=pagos,
+        mes=mes
+    )
 
 @main.route('/pagos-residente')
 def pagos_residente():
@@ -549,4 +559,16 @@ def cambiar_contrasena():
     return render_template(
         'login.html',
         mensaje="Contraseña cambiada con éxito"
+    )
+    
+@main.route('/perfil')
+def perfil_usuario():
+    if 'usuario_id' not in session:
+        return redirect(url_for('main.login'))
+
+    return render_template(
+        'perfil.html',
+        nombre=session.get('nombre'),
+        correo=session.get('correo'),
+        rol=session.get('rol')
     )

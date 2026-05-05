@@ -30,10 +30,10 @@
             </div>
 
             <div class="iconos-area">
-                <a class="btn-header" href="{{ url_for('main.en_proceso') }}">🔗</a>
+                <a class="btn-header" href="{{ url_for('main.gestion_pagos') }}">🔗</a>
                 <a class="btn-header" href="{{ url_for('main.en_proceso') }}">💬</a>
                 <a class="btn-header" href="{{ url_for('main.en_proceso') }}">⚙</a>
-                <a class="btn-header perfil-btn" href="{{ url_for('main.en_proceso') }}">
+                <a class="btn-header perfil-btn" href="{{ url_for('main.perfil_usuario') }}" title="Perfil">
                     <img src="{{ url_for('static', filename='img/perfil.png') }}" alt="Perfil">
                 </a>
             </div>
@@ -44,7 +44,7 @@
                 <nav>
                     <ul>
                         <li><a href="{{ url_for('main.dashboard_admin') }}">Inicio</a></li>
-                        <li><a href="{{ url_for('main.en_proceso') }}">Pagos</a></li>
+                        <li><a href="{{ url_for('main.gestion_pagos') }}">Pagos</a></li>
                         <li><a href="{{ url_for('main.en_proceso') }}">Parqueaderos</a></li>
                         <li><a href="{{ url_for('main.en_proceso') }}">Reservas</a></li>
                         <li><a href="{{ url_for('main.en_proceso') }}">Anuncios</a></li>

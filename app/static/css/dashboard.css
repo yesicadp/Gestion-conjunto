@@ -579,3 +579,133 @@ body {
 .btn-descargar:hover {
     background: #6f0d2c;
 }
+
+.filtros-pagos {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 20px;
+}
+
+.filtros-pagos input,
+.filtros-pagos select {
+    padding: 10px;
+    border-radius: 10px;
+    border: 1px solid #ccc;
+}
+
+.filtros-pagos button {
+    background: #8f1239;
+    color: white;
+    border: none;
+    padding: 10px 18px;
+    border-radius: 10px;
+    cursor: pointer;
+}
+
+.tabla-container {
+    overflow-x: auto;
+}
+
+.tabla-pagos {
+    width: 100%;
+    border-collapse: collapse;
+    background: white;
+    border-radius: 10px;
+    overflow: hidden;
+}
+
+.tabla-pagos th {
+    background: #8f1239;
+    color: white;
+    padding: 12px;
+}
+
+.tabla-pagos td {
+    padding: 10px;
+    text-align: center;
+    border-bottom: 1px solid #ddd;
+}
+
+.tabla-pagos tr:hover {
+    background: #f5f5f5;
+}
+
+.acciones-pagos {
+    display: flex;
+    justify-content: flex-end;
+    margin-bottom: 15px;
+}
+
+.btn-crear {
+    background: #8f1239;
+    color: white;
+    text-decoration: none;
+    padding: 10px 18px;
+    border-radius: 10px;
+    font-weight: 600;
+}
+
+.btn-crear:hover {
+    background: #6f0d2c;
+}
+
+.filtros-pagos {
+    display: flex;
+    gap: 12px;
+    margin-bottom: 20px;
+    flex-wrap: wrap;
+}
+
+.filtros-pagos input,
+.filtros-pagos select {
+    padding: 10px 14px;
+    border: 1px solid #ccc;
+    border-radius: 10px;
+    font-family: 'Poppins', sans-serif;
+}
+
+.filtros-pagos button {
+    background: #8f1239;
+    color: white;
+    border: none;
+    padding: 10px 18px;
+    border-radius: 10px;
+    cursor: pointer;
+}
+
+.tabla-container {
+    overflow-x: auto;
+}
+
+.tabla-pagos {
+    width: 100%;
+    border-collapse: collapse;
+    background: white;
+    border-radius: 12px;
+    overflow: hidden;
+}
+
+.tabla-pagos th {
+    background: #8f1239;
+    color: white;
+    padding: 12px;
+}
+
+.tabla-pagos td {
+    padding: 11px;
+    text-align: center;
+    border-bottom: 1px solid #ddd;
+}
+
+.tabla-pagos tr:hover {
+    background: #f5f5f5;
+}
+
+.btn-descargar {
+    background: #8f1239;
+    color: white;
+    text-decoration: none;
+    padding: 7px 12px;
+    border-radius: 8px;
+    font-size: 14px;
+}

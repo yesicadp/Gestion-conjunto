@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Perfil - El Ciprés</title>
+
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/dashboard.css') }}?v=4">
+    <link href="https://fonts.googleapis.com/css2?family=Great+Vibes&family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+
+<div class="contenedor-principal">
+
+    <header class="header">
+        <div class="logo-area">
+            <p class="texto-superior">Agrupación de Vivienda</p>
+            <h1 class="logo">El Ciprés</h1>
+        </div>
+
+        <div class="bienvenida-area">
+            <p>Perfil de usuario</p>
+            <h2>Información personal</h2>
+        </div>
+    </header>
+
+    <main class="main">
+        <section class="saludo">
+            <h2>Mi perfil</h2>
+        </section>
+
+        <article class="card datos-vivienda">
+            <h3>Datos del usuario</h3>
+
+            <p><strong>Nombre</strong></p>
+            <p>{{ nombre }}</p>
+
+            <p><strong>Correo</strong></p>
+            <p>{{ correo }}</p>
+
+            <p><strong>Rol</strong></p>
+            <p>{{ rol }}</p>
+        </article>
+        <div class="extras">
+            <a href="{{ url_for('main.login') }}">Volver al inicio de sesión</a>
+        </div>
+    </main>
+
+</div>
+
+</body>
+</html>

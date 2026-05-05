@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Pagos - El Ciprés</title>
+
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/dashboard.css') }}?v=6">
+    <link href="https://fonts.googleapis.com/css2?family=Great+Vibes&family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+
+<div class="contenedor-principal">
+
+    <header class="header">
+        <div class="logo-area">
+            <p class="texto-superior">Agrupación de Vivienda</p>
+            <h1 class="logo">El Ciprés</h1>
+        </div>
+
+        <div class="bienvenida-area">
+            <p>Panel de Administración</p>
+            <h2>Gestión de Pagos</h2>
+        </div>
+
+        <div class="iconos-area">
+            <a class="btn-header" href="{{ url_for('main.dashboard_admin') }}">🏠</a>
+        </div>
+    </header>
+
+    <div class="contenido-general">
+
+        <aside class="sidebar">
+            <ul>
+                <li><a href="{{ url_for('main.dashboard_admin') }}">Inicio</a></li>
+                <li><a href="{{ url_for('main.gestion_pagos') }}">Pagos</a></li>
+                <li><a href="{{ url_for('main.en_proceso') }}">Parqueaderos</a></li>
+                <li><a href="{{ url_for('main.en_proceso') }}">Reservas</a></li>
+                <li><a href="{{ url_for('main.en_proceso') }}">Anuncios</a></li>
+                <li><a href="{{ url_for('main.logout') }}">Cerrar sesión</a></li>
+            </ul>
+        </aside>
+
+        <main class="main">
+
+            <h2 class="titulo-pagos">Gestión de pagos</h2>
+
+            <div class="acciones-pagos">
+                <a class="btn-crear" href="{{ url_for('main.en_proceso') }}">+ Crear factura</a>
+            </div>
+
+            <form method="GET" class="filtros-pagos">
+                <input type="month" name="mes" value="{{ mes }}">
+
+                <button type="submit">Filtrar</button>
+
+                <input type="text" id="buscarTabla" placeholder="Buscar casa o residente...">
+            </form>
+
+            <div class="tabla-container">
+                <table class="tabla-pagos" id="tablaPagos">
+                    <thead>
+                        <tr>
+                            <th>Casa</th>
+                            <th>Residente</th>
+                            <th>Estado vivienda</th>
+                            <th>Fecha factura</th>
+                            <th>Pago oportuno</th>
+                            <th>Fecha límite</th>
+                            <th>Estado factura</th>
+                            <th>Acción</th>
+                        </tr>
+                    </thead>
+
+                    <tbody>
+                        {% for pago in pagos %}
+                        <tr>
+                            <td>Casa {{ pago.id_vivienda }}</td>
+
+                            <td>
+                                {% if pago.nombres %}
+                                    {{ pago.nombres }} {{ pago.apellidos }}
+                                {% else %}
+                                    Sin residente
+                                {% endif %}
+                            </td>
+
+                            <td>{{ pago.estado_financiero }}</td>
+                            <td>{{ pago.fecha or '-' }}</td>
+                            <td>{{ pago.fecha_pago_oportuno or '-' }}</td>
+                            <td>{{ pago.fecha_limite or '-' }}</td>
+                            <td>{{ pago.estado_factura or '-' }}</td>
+
+                            <td>
+                                {% if pago.id_factura %}
+                                    <a class="btn-descargar" href="{{ url_for('main.en_proceso') }}">Descargar</a>
+                                {% else %}
+                                    -
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+
+        </main>
+    </div>
+
+</div>
+
+<script>
+    const buscador = document.getElementById("buscarTabla");
+    const filas = document.querySelectorAll("#tablaPagos tbody tr");
+
+    buscador.addEventListener("keyup", function () {
+        const texto = buscador.value.toLowerCase();
+
+        filas.forEach(fila => {
+            const contenido = fila.textContent.toLowerCase();
+
+            if (contenido.includes(texto)) {
+                fila.style.display = "";
+            } else {
+                fila.style.display = "none";
+            }
+        });
+    });
+</script>
+
+</body>
+</html>

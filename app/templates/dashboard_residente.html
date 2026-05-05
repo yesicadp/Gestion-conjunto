@@ -39,10 +39,10 @@
             </div>
 
             <div class="iconos-area">
-                <a class="btn-header" href="{{ url_for('main.en_proceso') }}">🔗</a>
-                <a class="btn-header" href="{{ url_for('main.en_proceso') }}">💬</a>
-                <a class="btn-header" href="{{ url_for('main.en_proceso') }}">⚙</a>
-                <a class="btn-header perfil-btn" href="{{ url_for('main.en_proceso') }}">
+                <a class="btn-header" href="{{ url_for('main.pagos_residente') }}" title="Pagos">🔗</a>
+                <a class="btn-header" href="{{ url_for('main.en_proceso') }}" title="Mensajes">💬</a>
+                <a class="btn-header" href="{{ url_for('main.en_proceso') }}" title="Configuración">⚙</a>
+                <a class="btn-header perfil-btn" href="{{ url_for('main.perfil_usuario') }}" title="Perfil">
                     <img src="{{ url_for('static', filename='img/perfil.png') }}" alt="Perfil">
                 </a>
             </div>
