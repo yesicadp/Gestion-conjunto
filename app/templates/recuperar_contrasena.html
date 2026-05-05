@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Recuperar contraseña - El Ciprés</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Great+Vibes&family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/login.css') }}?v=3">
+</head>
+<body>
+
+    <div class="fondo">
+        <div class="overlay"></div>
+
+        <div class="login-container">
+
+            <div class="login-left">
+                <p>Agrupación de Vivienda</p>
+                <h1>El Ciprés</h1>
+            </div>
+
+            <div class="login-right">
+
+                {% if paso == 2 %}
+
+                    <div class="form-encabezado">
+                        <h2>Cambiar contraseña</h2>
+                        <p>Ingresa el código recibido y tu nueva contraseña</p>
+                    </div>
+
+                    <form action="{{ url_for('main.cambiar_contrasena') }}" method="POST">
+                        <input type="hidden" name="correo" value="{{ correo }}">
+
+                        <label for="codigo">Código</label>
+                        <input type="text" id="codigo" name="codigo" placeholder="Ingresa el código" required>
+
+                        <label for="nueva_contrasena">Nueva contraseña</label>
+                        <input type="password" id="nueva_contrasena" name="nueva_contrasena" placeholder="Nueva contraseña" required>
+
+                        <label for="confirmar_contrasena">Confirmar contraseña</label>
+                        <input type="password" id="confirmar_contrasena" name="confirmar_contrasena" placeholder="Repite la contraseña" required>
+
+                        <button type="submit">Cambiar contraseña</button>
+                    </form>
+
+                {% else %}
+
+                    <div class="form-encabezado">
+                        <h2>Recuperar contraseña</h2>
+                        <p>Ingresa tu correo para recibir un código</p>
+                    </div>
+
+                    <form action="{{ url_for('main.solicitar_recuperacion') }}" method="POST">
+                        <label for="correo">Correo</label>
+                        <input type="email" id="correo" name="correo" placeholder="Ingresa tu correo" required>
+
+                        <button type="submit">Enviar código</button>
+                    </form>
+
+                {% endif %}
+
+                {% if mensaje %}
+                    <p class="mensaje-ok">{{ mensaje }}</p>
+                {% endif %}
+
+                {% if error %}
+                    <p class="mensaje-error">{{ error }}</p>
+                {% endif %}
+
+                <div class="extras">
+                    <a href="{{ url_for('main.login') }}">Volver al inicio de sesión</a>
+                </div>
+
+            </div>
+
+        </div>
+    </div>
+
+</body>
+</html>

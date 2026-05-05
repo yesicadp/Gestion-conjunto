@@ -441,6 +441,10 @@ def enviar_correo_recuperacion(destinatario, codigo):
     except Exception as e:
         print(f"Error al enviar correo: {e}")
         return False
+    
+@main.route('/recuperar-contrasena')
+def recuperar_contrasena():
+    return render_template('recuperar_contrasena.html')
 
 # RUTA 1: EL USUARIO PIDE RECUPERAR SU CONTRASEÑA
 @main.route('/solicitar-recuperacion', methods=['POST'])
@@ -449,42 +453,58 @@ def solicitar_recuperacion():
     
     conexion = obtener_conexion()
     cursor = conexion.cursor(dictionary=True)
-    cursor.execute("SELECT id_usuario FROM usuarios WHERE correo_electronico = %s", (correo,))
+
+    cursor.execute(
+        "SELECT id_usuario FROM usuarios WHERE correo_electronico = %s",
+        (correo,)
+    )
     usuario = cursor.fetchone()
 
     if usuario:
-        # Generamos un código
         alfabeto = string.ascii_letters + string.digits
         codigo = ''.join(secrets.choice(alfabeto) for i in range(8))
-        # 2. Le damos 15 minutos de vida a partir de este instante
+
         vencimiento = datetime.now() + timedelta(minutes=15)
-        # 3. Guardamos el código en la BD
+
         cursor.execute("""
             UPDATE usuarios 
             SET codigo_recuperacion = %s, vencimiento_codigo = %s 
             WHERE correo_electronico = %s
         """, (codigo, vencimiento, correo))
+
         conexion.commit()
 
-        # 4. Enviamos el correo
-        enviar_correo_recuperacion(correo, codigo)
+        print("CÓDIGO:", codigo)
 
     cursor.close()
     conexion.close()
 
-    return jsonify({"mensaje": "Si el correo está registrado, recibirás un código de recuperación de 8 caracteres."}), 200
+    return render_template(
+        'recuperar_contrasena.html',
+        paso=2,
+        correo=correo,
+    )
+
 
 # RUTA 2: EL USUARIO INGRESA EL CÓDIGO Y LA NUEVA CONTRASEÑA 
 @main.route('/cambiar-contrasena', methods=['POST'])
 def cambiar_contrasena():
     correo = request.form.get('correo')
-    codigo_ingresado = request.form.get('codigo')
-    nueva_contrasena = request.form.get('nueva_contrasena')
+    codigo = request.form.get('codigo')
+    nueva = request.form.get('nueva_contrasena')
+    confirmar = request.form.get('confirmar_contrasena')
+
+    if nueva != confirmar:
+        return render_template(
+            'recuperar_contrasena.html',
+            paso=2,
+            correo=correo,
+            error="Las contraseñas no coinciden"
+        )
 
     conexion = obtener_conexion()
     cursor = conexion.cursor(dictionary=True)
 
-    # Buscamos los datos de recuperación del usuario
     cursor.execute("""
         SELECT codigo_recuperacion, vencimiento_codigo 
         FROM usuarios 
@@ -492,24 +512,41 @@ def cambiar_contrasena():
     """, (correo,))
     usuario = cursor.fetchone()
 
-    # Validaciones de seguridad
-    if not usuario or usuario['codigo_recuperacion'] != codigo_ingresado:
-        return jsonify({"error": "El código es incorrecto."}), 400
+    if not usuario or usuario['codigo_recuperacion'] != codigo:
+        cursor.close()
+        conexion.close()
+        return render_template(
+            'recuperar_contrasena.html',
+            paso=2,
+            correo=correo,
+            error="Código incorrecto"
+        )
 
     if datetime.now() > usuario['vencimiento_codigo']:
-        return jsonify({"error": "El código ha expirado. Solicita uno nuevo."}), 400
+        cursor.close()
+        conexion.close()
+        return render_template(
+            'recuperar_contrasena.html',
+            paso=2,
+            correo=correo,
+            error="El código expiró"
+        )
 
-    nuevo_hash = generate_password_hash(nueva_contrasena)
-    
-    # Actualizamos la BD y limpiamos el código para que no se pueda reusar
+    nuevo_hash = generate_password_hash(nueva)
+
     cursor.execute("""
         UPDATE usuarios 
-        SET contrasena = %s, codigo_recuperacion = NULL, vencimiento_codigo = NULL 
+        SET contrasena = %s,
+            codigo_recuperacion = NULL,
+            vencimiento_codigo = NULL
         WHERE correo_electronico = %s
     """, (nuevo_hash, correo))
-    
+
     conexion.commit()
     cursor.close()
     conexion.close()
 
-    return jsonify({"mensaje": "¡Contraseña actualizada con éxito! Ya puedes iniciar sesión."}), 200
+    return render_template(
+        'login.html',
+        mensaje="Contraseña cambiada con éxito"
+    )
