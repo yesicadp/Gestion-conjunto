@@ -1,0 +1,27 @@
+      /* Estilos adicionales para el modal de detalle */
+      .detalle-content {
+        max-width: 500px;
+      }
+
+      .info-row {
+        margin-bottom: 15px;
+        padding-bottom: 10px;
+        border-bottom: 1px solid #eee;
+        display: flex;
+      }
+
+      .info-label {
+        font-weight: 600;
+        width: 140px;
+        color: #555;
+      }
+
+      .info-value {
+        color: #333;
+        flex: 1;
+      }
+
+      .detalle-actions {
+        margin-top: 20px;
+        text-align: right;
+      }

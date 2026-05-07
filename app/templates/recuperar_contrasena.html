@@ -32,7 +32,7 @@
                         <p>Ingresa el código recibido y tu nueva contraseña</p>
                     </div>
 
-                    <form action="{{ url_for('main.cambiar_contrasena') }}" method="POST">
+                    <form action="{{ url_for('recuperacion.cambiar_contrasena') }}" method="POST">
                         <input type="hidden" name="correo" value="{{ correo }}">
 
                         <label for="codigo">Código</label>
@@ -54,7 +54,7 @@
                         <p>Ingresa tu correo para recibir un código</p>
                     </div>
 
-                    <form action="{{ url_for('main.solicitar_recuperacion') }}" method="POST">
+                    <form action="{{ url_for('recuperacion.solicitar_recuperacion') }}" method="POST">
                         <label for="correo">Correo</label>
                         <input type="email" id="correo" name="correo" placeholder="Ingresa tu correo" required>
 
@@ -72,7 +72,7 @@
                 {% endif %}
 
                 <div class="extras">
-                    <a href="{{ url_for('main.login') }}">Volver al inicio de sesión</a>
+                    <a href="{{ url_for('auth.login') }}">Volver al inicio de sesión</a>
                 </div>
 
             </div>

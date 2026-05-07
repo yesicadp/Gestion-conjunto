@@ -23,7 +23,7 @@
         </div>
 
         <div class="iconos-area">
-            <a class="btn-header" href="{{ url_for('main.dashboard_admin') }}">🏠</a>
+            <a class="btn-header" href="{{ url_for('dashboard.dashboard_admin') }}">🏠</a>
         </div>
     </header>
 
@@ -31,12 +31,12 @@
 
         <aside class="sidebar">
             <ul>
-                <li><a href="{{ url_for('main.dashboard_admin') }}">Inicio</a></li>
-                <li><a href="{{ url_for('main.gestion_pagos') }}">Pagos</a></li>
-                <li><a href="{{ url_for('main.en_proceso') }}">Parqueaderos</a></li>
-                <li><a href="{{ url_for('main.en_proceso') }}">Reservas</a></li>
-                <li><a href="{{ url_for('main.en_proceso') }}">Anuncios</a></li>
-                <li><a href="{{ url_for('main.logout') }}">Cerrar sesión</a></li>
+                <li><a href="{{ url_for('dashboard.dashboard_admin') }}">Inicio</a></li>
+                <li><a href="{{ url_for('pagos.gestion_pagos') }}">Pagos</a></li>
+                <li><a href="{{ url_for('recuperacion.en_proceso') }}">Parqueaderos</a></li>
+                <li><a href="{{ url_for('recuperacion.en_proceso') }}">Reservas</a></li>
+                <li><a href="{{ url_for('recuperacion.en_proceso') }}">Anuncios</a></li>
+                <li><a href="{{ url_for('auth.logout') }}">Cerrar sesión</a></li>
             </ul>
         </aside>
 
@@ -45,7 +45,7 @@
             <h2 class="titulo-pagos">Gestión de pagos</h2>
 
             <div class="acciones-pagos">
-                <a class="btn-crear" href="{{ url_for('main.en_proceso') }}">+ Crear factura</a>
+                <a class="btn-crear" href="{{ url_for('recuperacion.en_proceso') }}">+ Crear factura</a>
             </div>
 
             <form method="GET" class="filtros-pagos">
@@ -92,7 +92,7 @@
 
                             <td>
                                 {% if pago.id_factura %}
-                                    <a class="btn-descargar" href="{{ url_for('main.en_proceso') }}">Descargar</a>
+                                    <a class="btn-descargar" href="{{ url_for('recuperacion.en_proceso') }}">Descargar</a>
                                 {% else %}
                                     -
                                 {% endif %}

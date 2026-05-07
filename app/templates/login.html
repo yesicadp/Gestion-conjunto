@@ -29,7 +29,7 @@
                     <p>Ingresa tus datos para continuar</p>
                 </div>
 
-                <form action="{{ url_for('main.login') }}" method="POST">
+                <form action="{{ url_for('auth.login') }}" method="POST">
                     <label for="correo">Correo</label>
                     <input type="email" id="correo" name="correo" placeholder="Ingresa tu correo" required>
 
@@ -40,8 +40,8 @@
                 </form>
 
                 <div class="extras">
-                    <a href="{{ url_for('main.en_proceso') }}">Registrar</a>
-                    <a href="{{ url_for('main.recuperar_contrasena') }}">¿Olvidaste tu contraseña?</a>
+                    <a href="{{ url_for('recuperacion.en_proceso') }}">Registrar</a>
+                    <a href="{{ url_for('recuperacion.recuperar_contrasena') }}">¿Olvidaste tu contraseña?</a>
                 </div>
             </div>
 

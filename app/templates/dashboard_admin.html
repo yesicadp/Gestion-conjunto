@@ -1,104 +1,172 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="es">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dashboard Administrador - El Ciprés</title>
-    
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/dashboard.css', v=2) }}">
-    
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Great+Vibes&family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
-<body>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Dashboard Administrador</title>
 
-    <div class="contenedor-principal">
+    <link
+      rel="stylesheet"
+      href="{{ url_for('static', filename='css/dashboard_admin.css') }}"
+    />
+    <link
+      rel="stylesheet"
+      href="{{ url_for('static', filename='css/modal.css') }}"
+    />
 
-        <header class="header">
-            <div class="logo-area">
-                <p class="texto-superior">Agrupación de Vivienda</p>
-                <h1 class="logo">El Ciprés</h1>
-            </div>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
 
-            <div class="bienvenida-area">
-                <p>Bienvenido a El Ciprés</p>
-                <h2>Panel de Administración</h2>
-
-                <div class="busqueda-area">
-                    <input type="text" placeholder="Buscar">
-                </div>
-            </div>
-
-            <div class="iconos-area">
-                <a class="btn-header" href="{{ url_for('main.gestion_pagos') }}">🔗</a>
-                <a class="btn-header" href="{{ url_for('main.en_proceso') }}">💬</a>
-                <a class="btn-header" href="{{ url_for('main.en_proceso') }}">⚙</a>
-                <a class="btn-header perfil-btn" href="{{ url_for('main.perfil_usuario') }}" title="Perfil">
-                    <img src="{{ url_for('static', filename='img/perfil.png') }}" alt="Perfil">
-                </a>
-            </div>
-        </header>
-
-        <div class="contenido-general">
-            <aside class="sidebar">
-                <nav>
-                    <ul>
-                        <li><a href="{{ url_for('main.dashboard_admin') }}">Inicio</a></li>
-                        <li><a href="{{ url_for('main.gestion_pagos') }}">Pagos</a></li>
-                        <li><a href="{{ url_for('main.en_proceso') }}">Parqueaderos</a></li>
-                        <li><a href="{{ url_for('main.en_proceso') }}">Reservas</a></li>
-                        <li><a href="{{ url_for('main.en_proceso') }}">Anuncios</a></li>
-                        <li><a href="{{ url_for('main.logout') }}">Cerrar sesión</a></li>
-                    </ul>
-                </nav>
-            </aside>
-
-            <main class="main">
-                <section class="saludo">
-                    <h2>Inicio</h2>
-                </section>
-
-                <section class="grid-viviendas">
-                    {% for vivienda in viviendas %}
-                    <a class="casa-card" href="{{ url_for('main.detalle_vivienda', id_vivienda=vivienda.id_vivienda) }}">
-                        <div class="casa-icono">🏠</div>
-
-                        <!-- Número de la vivienda -->
-                        <h3>Casa {{ vivienda.id_vivienda }}</h3>
-
-                        <!-- Nombre del residente -->
-                        <p>
-                            {% if vivienda.nombres %}
-                                {{ vivienda.nombres }} {{ vivienda.apellidos }}
-                            {% else %}
-                                Sin residente asignado
-                            {% endif %}
-                        </p>
-
-                        <!-- Estado financiero -->
-                        {% if vivienda.estado_financiero == 'al dia' %}
-                            <div class="estado estado-dia">Al día</div>
-                        {% elif vivienda.estado_financiero == 'pendiente' %}
-                            <div class="estado estado-pendiente">Pendiente</div>
-                        {% elif vivienda.estado_financiero == 'en mora' %}
-                            <div class="estado estado-mora">En mora</div>
-                        {% else %}
-                            <div class="estado estado-pendiente">Sin estado</div>
-                        {% endif %}
-                    </a>
-                    {% endfor %}
-                </section>
-            </main>
+    <link
+      href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+  </head>
+  <body>
+    <div class="layout">
+      <aside class="sidebar">
+        <div class="logo-box">
+          <h1>El Ciprés</h1>
+          <p>Administración</p>
         </div>
 
-        <footer class="footer">
-            <div class="footer-contenido">
-                <p>A.J.Y.T</p>
-                <p>Versión 2026</p>
-            </div>
-        </footer>
+        <nav class="menu">
+          <a href="{{ url_for('dashboard.dashboard_admin') }}">🏠 Inicio</a>
+          <a href="{{ url_for('pagos.gestion_pagos') }}">💰 Pagos</a>
+          <a href="#">🚗 Parqueaderos</a>
+          <a href="#">📅 Reservas</a>
+          <a href="#">📢 Anuncios</a>
+          <a href="{{ url_for('auth.logout') }}">🚪 Cerrar sesión</a>
+        </nav>
+      </aside>
 
+      <main class="main-content">
+        <header class="topbar">
+          <div>
+            <h2>Dashboard Administrativo</h2>
+            <p>Gestión general del conjunto residencial</p>
+          </div>
+
+          <div class="top-actions">
+            <input type="text" placeholder="Buscar vivienda..." />
+
+            <button class="btn-primary" onclick="abrirModal()">
+              + Nuevo anuncio
+            </button>
+          </div>
+        </header>
+
+        <section class="stats-grid">
+          <div class="stat-card">
+            <h3>{{ viviendas|length }}</h3>
+            <p>Total viviendas</p>
+          </div>
+
+          <div class="stat-card success">
+            <h3>24</h3>
+            <p>Pagos al día</p>
+          </div>
+
+          <div class="stat-card warning">
+            <h3>5</h3>
+            <p>Pendientes</p>
+          </div>
+
+          <div class="stat-card danger">
+            <h3>2</h3>
+            <p>En mora</p>
+          </div>
+        </section>
+
+        <section class="viviendas-section">
+          <div class="section-header">
+            <h2>Viviendas</h2>
+          </div>
+
+          <div class="grid-viviendas">
+            {% for vivienda in viviendas %}
+
+            <div class="casa-card">
+              <div class="card-top">
+                <div class="icono-casa">🏠</div>
+
+                {% if vivienda.estado_financiero == 'al dia' %}
+                <span class="badge success">Al día</span>
+                {% elif vivienda.estado_financiero == 'pendiente' %}
+                <span class="badge warning">Pendiente</span>
+                {% else %}
+                <span class="badge danger">En mora</span>
+                {% endif %}
+              </div>
+
+              <h3>Casa {{ vivienda.id_vivienda }}</h3>
+
+              <p>
+                {% if vivienda.nombres %} {{ vivienda.nombres }} {{
+                vivienda.apellidos }} {% else %} Sin residente asignado {% endif
+                %}
+              </p>
+
+              <div
+                class="casa-card"
+                data-id="{{ vivienda.id_vivienda }}"
+                data-nombres="{{ vivienda.nombres | default('', true) }}"
+                data-apellidos="{{ vivienda.apellidos | default('', true) }}"
+                data-correo="{{ vivienda.correo_electronico | default('', true) }}"
+                data-estado="{{ vivienda.estado_financiero | default('', true) }}"
+                data-vehiculo="{{ vivienda.tiene_vehiculo | default(false) }}"
+              >
+                <a
+                  href="javascript:void(0)"
+                  onclick="mostrarDetalleVivienda(this)"
+                >
+                  Ver detalle
+                </a>
+              </div>
+            </div>
+
+            {% endfor %}
+          </div>
+        </section>
+      </main>
     </div>
 
-</body>
+    <!-- MODAL PARA ANUNCIOS (existente) -->
+    <div class="modal" id="modalAnuncio">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h2>Nuevo anuncio</h2>
+          <button onclick="cerrarModal()">✖</button>
+        </div>
+
+        <form>
+          <input type="text" placeholder="Título" />
+          <textarea placeholder="Contenido del anuncio"></textarea>
+          <button type="submit" class="btn-primary">Publicar</button>
+        </form>
+      </div>
+    </div>
+
+    <!-- NUEVO MODAL PARA DETALLE DE VIVIENDA -->
+    <div class="modal" id="modalDetalleVivienda">
+      <div class="modal-content detalle-content">
+        <div class="modal-header">
+          <h2 id="modalDetalleTitulo">Detalle de vivienda</h2>
+          <button onclick="cerrarModalDetalle()">✖</button>
+        </div>
+
+        <div id="detalleViviendaContent">
+          <!-- El contenido se llenará dinámicamente con JavaScript -->
+        </div>
+
+        <div class="detalle-actions">
+          <button onclick="cerrarModalDetalle()" class="btn-secondary">
+            Cerrar
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <script src="{{ url_for('static', filename='js/index.js') }}"></script>
+  </body>
 </html>

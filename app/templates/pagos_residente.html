@@ -37,10 +37,10 @@
             </div>
 
             <div class="iconos-area">
-                <a class="btn-header" href="{{ url_for('main.en_proceso') }}">🔗</a>
-                <a class="btn-header" href="{{ url_for('main.en_proceso') }}">💬</a>
-                <a class="btn-header" href="{{ url_for('main.en_proceso') }}">⚙</a>
-                <a class="btn-header perfil-btn" href="{{ url_for('main.en_proceso') }}">
+                <a class="btn-header" href="{{ url_for('recuperacion.en_proceso') }}">🔗</a>
+                <a class="btn-header" href="{{ url_for('recuperacion.en_proceso') }}">💬</a>
+                <a class="btn-header" href="{{ url_for('recuperacion.en_proceso') }}">⚙</a>
+                <a class="btn-header perfil-btn" href="{{ url_for('recuperacion.en_proceso') }}">
                     <img src="{{ url_for('static', filename='img/perfil.png') }}" alt="Perfil">
                 </a>
             </div>
@@ -53,12 +53,12 @@
             <aside class="sidebar">
                 <nav>
                     <ul>
-                        <li><a href="{{ url_for('main.dashboard_residente') }}">Inicio</a></li>
-                        <li><a href="{{ url_for('main.pagos_residente') }}">Pagos</a></li>
-                        <li><a href="{{ url_for('main.en_proceso') }}">Parqueaderos</a></li>
-                        <li><a href="{{ url_for('main.en_proceso') }}">Reservas</a></li>
-                        <li><a href="{{ url_for('main.en_proceso') }}">Anuncios</a></li>
-                        <li><a href="{{ url_for('main.logout') }}">Cerrar sesión</a></li>
+                        <li><a href="{{ url_for('dashboard.dashboard_residente') }}">Inicio</a></li>
+                        <li><a href="{{ url_for('pagos.pagos_residente') }}">Pagos</a></li>
+                        <li><a href="{{ url_for('recuperacion.en_proceso') }}">Parqueaderos</a></li>
+                        <li><a href="{{ url_for('recuperacion.en_proceso') }}">Reservas</a></li>
+                        <li><a href="{{ url_for('recuperacion.en_proceso') }}">Anuncios</a></li>
+                        <li><a href="{{ url_for('auth.logout') }}">Cerrar sesión</a></li>
                     </ul>
                 </nav>
             </aside>
