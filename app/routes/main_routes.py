@@ -4,16 +4,18 @@ from datetime import datetime, timedelta
 from werkzeug.security import check_password_hash, generate_password_hash
 import smtplib
 from email.mime.text import MIMEText
+from email.mime.multipart import MIMEMultipart
 import string
 import secrets
 
 main = Blueprint('main', __name__)
 
+# Ruta de inicio que redirige al login
 @main.route('/')
 def inicio():
     return redirect(url_for('main.login'))
 
-# LOGIN 
+#Ruta de login
 @main.route('/login', methods=['GET', 'POST'])
 def login():
     if request.method == 'POST':
@@ -23,7 +25,6 @@ def login():
         conexion = obtener_conexion()
         if conexion:
             cursor = conexion.cursor(dictionary=True)
-
             query = """
                 SELECT id_usuario, nombres, apellidos, correo_electronico, contrasena, rol
                 FROM usuarios
@@ -50,11 +51,13 @@ def login():
 
     return render_template('login.html')
 
+# Ruta de logout
 @main.route('/logout')
 def logout():
     session.clear()
     return redirect(url_for('main.login'))
 
+# Ruta de dashboard para residentes
 @main.route('/dashboard-residente')
 def dashboard_residente():
     if 'rol' not in session or session['rol'] != 'residente':
@@ -75,6 +78,7 @@ def dashboard_residente():
             u.nombres,
             u.apellidos,
             u.correo_electronico,
+            u.telefono,
             v.id_vivienda,
             v.tiene_vehiculo,
             v.estado_financiero
@@ -94,6 +98,7 @@ def dashboard_residente():
     parqueaderos = cursor.fetchone()
     disponibles = parqueaderos['disponibles']
     
+    # Obtener la factura más reciente de la vivienda
     cursor.execute("""
         SELECT f.id_factura, f.fecha_limite, f.estado
         FROM facturas f
@@ -102,7 +107,7 @@ def dashboard_residente():
         LIMIT 1
     """, (datos['id_vivienda'],))
     factura = cursor.fetchone()
-
+    
     if factura:
         cursor.execute("""
             SELECT SUM(monto) AS total
@@ -127,7 +132,6 @@ def dashboard_residente():
     """, (datos['id_vivienda'],))
     parqueadero_asignado = cursor.fetchone()
 
-
     # Reservas del residente
     cursor.execute("""
         SELECT 
@@ -147,6 +151,7 @@ def dashboard_residente():
         'dashboard_residente.html',
         nombre=nombre,
         correo=datos['correo_electronico'],
+        telefono=datos['telefono'] if datos['telefono'] else "No registrado",
         vivienda=datos,
         parqueaderos_disponibles=disponibles,
         factura=factura,
@@ -155,9 +160,9 @@ def dashboard_residente():
         reservas=reservas
     )
 
+# Ruta de dashboard para administradores
 @main.route('/dashboard-admin')
 def dashboard_admin():
-    # Verificar acceso del administrador
     if 'rol' not in session or session['rol'] != 'administrador':
         return redirect(url_for('main.login'))
 
@@ -173,6 +178,7 @@ def dashboard_admin():
             v.id_vivienda,
             u.nombres,
             u.apellidos,
+            u.telefono,
             v.estado_financiero
         FROM viviendas v
         LEFT JOIN usuarios u 
@@ -190,9 +196,12 @@ def dashboard_admin():
         viviendas=viviendas
     )
 
-# VIVIENDAS
+# Rutas para gestionar viviendas (administrador)
 @main.route('/viviendas', methods=['GET'])
 def listado_viviendas():
+    if 'rol' not in session or session['rol'] != 'administrador':
+        return jsonify({"error": "Acceso no autorizado"}), 403
+    
     conexion = obtener_conexion()
     if conexion:
         cursor = conexion.cursor(dictionary=True)
@@ -203,6 +212,7 @@ def listado_viviendas():
         return jsonify({"viviendas": viviendas})
     return jsonify({"error": "No hay conexión"}), 500
 
+# Detalle de vivienda (administrador)
 @main.route('/admin/vivienda/<int:id_vivienda>')
 def detalle_vivienda(id_vivienda):
     if 'rol' not in session or session['rol'] != 'administrador':
@@ -213,7 +223,7 @@ def detalle_vivienda(id_vivienda):
         return "Error de conexión a la base de datos", 500
 
     cursor = conexion.cursor(dictionary=True)
-
+    
     query = """
         SELECT 
             v.id_vivienda,
@@ -221,6 +231,7 @@ def detalle_vivienda(id_vivienda):
             v.tiene_vehiculo,
             u.nombres,
             u.apellidos,
+            u.telefono,
             u.correo_electronico
         FROM viviendas v
         LEFT JOIN usuarios u ON v.id_usuario = u.id_usuario
@@ -234,11 +245,13 @@ def detalle_vivienda(id_vivienda):
 
     return render_template('detalle_vivienda.html', vivienda=vivienda)
 
-# FACTURAS
+# Ruta para gestionar pagos (administrador)
 @main.route('/pagos', methods=['GET'])
 def gestion_pagos():
+    if 'rol' not in session or session['rol'] != 'administrador':
+        return jsonify({"error": "Acceso no autorizado"}), 403
+    
     mes = request.args.get('mes')
-
     if not mes:
         mes = datetime.now().strftime('%Y-%m')
 
@@ -275,6 +288,7 @@ def gestion_pagos():
         mes=mes
     )
 
+# Ruta para que el residente vea sus pagos
 @main.route('/pagos-residente')
 def pagos_residente():
     if 'rol' not in session or session['rol'] != 'residente':
@@ -298,7 +312,7 @@ def pagos_residente():
     cursor.execute(query_vivienda, (usuario_id,))
     vivienda = cursor.fetchone()
 
-    # 2. Obtener factura de esa vivienda (última)
+    # 2. Obtener factura de esa vivienda (ultima)
     query_factura = """
         SELECT *
         FROM facturas
@@ -375,128 +389,201 @@ def pagos_residente():
         historial=historial
     )
 
-# RESERVAS
+# Rutas para gestionar reservas (Residente)
 @main.route('/reservas', methods=['GET', 'POST'])
 def gestion_reservas():
+    if 'usuario_id' not in session:
+        return jsonify({"error": "Debe iniciar sesión para acceder"}), 401
+
+    usuario_id = session['usuario_id']
     conexion = obtener_conexion()
-    if not conexion: return jsonify({"error": "No hay conexión"}), 500
+    if not conexion: 
+        return jsonify({"error": "Error de conexión con la base de datos"}), 500
     
     cursor = conexion.cursor(dictionary=True)
+
+    #  Crear reserva
     if request.method == 'POST':
         fecha_evento = request.form.get('fecha_evento')
-        usuario_id = session.get('usuario_id')
         
-        query = "INSERT INTO reservas (id_usuario, fecha_evento, estado) VALUES (%s, %s, 'pendiente')"
-        cursor.execute(query, (usuario_id, fecha_evento))
-        conexion.commit()
-        return jsonify({"mensaje": "Reserva guardada"}), 201
+        if not fecha_evento:
+            return jsonify({"error": "La fecha es obligatoria"}), 400
+        
+        try:
+            query = "INSERT INTO reservas (id_usuario, fecha_evento, estado) VALUES (%s, %s, 'pendiente')"
+            cursor.execute(query, (usuario_id, fecha_evento))
+            conexion.commit()
+            return jsonify({"mensaje": "Reserva enviada con éxito. Pendiente de aprobación."}), 201
+        except Exception as e:
+            return jsonify({"error": f"No se pudo guardar la reserva: {str(e)}"}), 500
     
-    cursor.execute("SELECT * FROM reservas")
-    reservas = cursor.fetchall()
-    for r in reservas:
+    # Ver reservas
+    query_consultar = "SELECT * FROM reservas WHERE id_usuario = %s ORDER BY fecha_evento DESC"
+    cursor.execute(query_consultar, (usuario_id,))
+    mis_reservas = cursor.fetchall()
+
+    # Formateamos las fechas para que JSON no se rompa
+    for r in mis_reservas:
         r['fecha_evento'] = str(r['fecha_evento'])
         
     cursor.close()
     conexion.close()
-    return jsonify({"reservas": reservas})
+    
+    return jsonify({"reservas": mis_reservas})
 
-# ANUNCIOS
+# Ruta para gestionar anuncios
 @main.route('/anuncios', methods=['GET', 'POST'])
 def gestion_anuncios():
     conexion = obtener_conexion()
-    if not conexion: return jsonify({"error": "No hay conexión"}), 500
+    if not conexion: 
+        return jsonify({"error": "No hay conexión con la base de datos"}), 500
     
     cursor = conexion.cursor(dictionary=True)
+    
+    # Publicación de anuncio (solo administradores)
     if request.method == 'POST':
+        if 'rol' not in session or session['rol'] != 'administrador':
+            return jsonify({"error": "Acceso denegado. Solo administradores pueden publicar anuncios."}), 403
+            
         titulo = request.form.get('titulo')
         contenido = request.form.get('contenido')
-        fecha_creacion = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
         user_id = session.get('usuario_id')
         
-        query = "INSERT INTO anuncios (id_usuario, titulo, contenido, fecha_creacion) VALUES (%s, %s, %s, %s)"
-        cursor.execute(query, (user_id, titulo, contenido, fecha_creacion))
-        conexion.commit()
-        return jsonify({"mensaje": "Anuncio publicado"}), 201
+        # Validamos que no envíen campos vacíos
+        if not titulo or not contenido:
+            return jsonify({"error": "El título y el contenido son obligatorios"}), 400
 
-    cursor.execute("SELECT * FROM anuncios")
-    anuncios = cursor.fetchall()
-    for a in anuncios:
-        a['fecha_creacion'] = str(a['fecha_creacion'])
+        try:
+            # La fecha se genera automáticamente en el servidor para evitar fraudes
+            fecha_creacion = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+            
+            query = "INSERT INTO anuncios (id_usuario, titulo, contenido, fecha_creacion) VALUES (%s, %s, %s, %s)"
+            cursor.execute(query, (user_id, titulo, contenido, fecha_creacion))
+            conexion.commit()
+            return jsonify({"mensaje": "Anuncio publicado exitosamente"}), 201
+        except Exception as e:
+            return jsonify({"error": f"Error al publicar: {str(e)}"}), 500
+
+    # Consulta de anuncios (todos los usuarios)
+    try:
+        cursor.execute("SELECT * FROM anuncios ORDER BY fecha_creacion DESC")
+        anuncios = cursor.fetchall()
         
-    cursor.close()
-    conexion.close()
-    return jsonify({"anuncios": anuncios})
+        for a in anuncios:
+            a['fecha_creacion'] = str(a['fecha_creacion'])
+            
+        cursor.close()
+        conexion.close()
+        return jsonify({"anuncios": anuncios})
+        
+    except Exception as e:
+        return jsonify({"error": f"Error al cargar anuncios: {str(e)}"}), 500
 
+# Ruta para mostrar página en proceso
 @main.route('/en-proceso')
 def en_proceso():
     if 'usuario_id' not in session:
         return redirect(url_for('main.login'))
     return render_template('en_proceso.html')
 
-def enviar_correo_recuperacion(destinatario, codigo):
-    remitente = "elcipresadmin@gmail.com"
-    password = "dvtd jvca fbxx ncpv"
+# Función para enviar correo de recuperación
+def enviar_correo_recuperacion(destinatario, nombre, codigo):
+    remitente = "JhonAPL08@gmail.com"
+    password = "zfuz fjcw dxjc pwna"
 
-    msg = MIMEText(f"Hola, tu código de recuperación para el Conjunto Ciprés es: {codigo}. Este código expirará en 15 minutos.")
-    msg['Subject'] = 'Recuperación de Contraseña - Conjunto Ciprés'
-    msg['From'] = remitente
+    msg = MIMEMultipart()
+    msg['From'] = f"Administración El Ciprés <{remitente}>"
     msg['To'] = destinatario
+    msg['Subject'] = '🔑 Código de Seguridad - Conjunto El Ciprés'
+
+    cuerpo = f"""
+    Hola, {nombre}.
+    
+    Has solicitado un código para restablecer tu contraseña en el sistema del Conjunto Residencial El Ciprés.
+    
+    Tu código de seguridad es: {codigo}
+    
+    Este código expirará en 15 minutos por motivos de seguridad. Si no has solicitado este cambio, por favor ignora este mensaje y asegúrate de que tu cuenta esté segura.
+    
+    Saludos,
+    Equipo de Soporte - El Ciprés.
+    """
+    
+    msg.attach(MIMEText(cuerpo, 'plain'))
 
     try:
         server = smtplib.SMTP_SSL('smtp.gmail.com', 465)
         server.login(remitente, password)
         server.sendmail(remitente, destinatario, msg.as_string())
         server.quit()
+        print(f"Correo personalizado enviado con éxito a {nombre} ({destinatario})")
         return True
     except Exception as e:
-        print(f"Error al enviar correo: {e}")
+        print(f"Error al enviar el correo a {destinatario}: {e}")
         return False
-    
+
+# Ruta para mostrar formulario de recuperación de contraseña
 @main.route('/recuperar-contrasena')
 def recuperar_contrasena():
     return render_template('recuperar_contrasena.html')
 
-# RUTA 1: EL USUARIO PIDE RECUPERAR SU CONTRASEÑA
+# Ruta 1: Generación de token y envío de correo
 @main.route('/solicitar-recuperacion', methods=['POST'])
 def solicitar_recuperacion():
     correo = request.form.get('correo')
     
     conexion = obtener_conexion()
+    if not conexion:
+        return jsonify({"error": "Fallo de conexión a la base de datos"}), 500
+        
     cursor = conexion.cursor(dictionary=True)
 
-    cursor.execute(
-        "SELECT id_usuario FROM usuarios WHERE correo_electronico = %s",
-        (correo,)
-    )
-    usuario = cursor.fetchone()
+    try:
+        # Buscamos al usuario y traemos su nombre para personalizar el correo
+        cursor.execute(
+            "SELECT id_usuario, nombres FROM usuarios WHERE correo_electronico = %s",
+            (correo,)
+        )
+        usuario = cursor.fetchone()
 
-    if usuario:
-        alfabeto = string.ascii_letters + string.digits
-        codigo = ''.join(secrets.choice(alfabeto) for i in range(8))
+        if usuario:
+            # Generación de código criptográficamente seguro
+            alfabeto = string.ascii_letters + string.digits
+            codigo = ''.join(secrets.choice(alfabeto) for i in range(8))
 
-        vencimiento = datetime.now() + timedelta(minutes=15)
+            # Definimos el tiempo de vida del código
+            vencimiento = datetime.now() + timedelta(minutes=15)
 
-        cursor.execute("""
-            UPDATE usuarios 
-            SET codigo_recuperacion = %s, vencimiento_codigo = %s 
-            WHERE correo_electronico = %s
-        """, (codigo, vencimiento, correo))
+            # Actualizamos la base de datos con el token y el vencimiento
+            cursor.execute("""
+                UPDATE usuarios 
+                SET codigo_recuperacion = %s, vencimiento_codigo = %s 
+                WHERE correo_electronico = %s
+            """, (codigo, vencimiento, correo))
+            conexion.commit()
 
-        conexion.commit()
+            # Usamos la función que ya tenemos lista
+            # Pasamos correo, el nombre real de la DB y el código generado
+            enviar_correo_recuperacion(correo, usuario['nombres'], codigo)
+            
+            print(f"Proceso iniciado para {usuario['nombres']}. Código enviado.")
 
-        print("CÓDIGO:", codigo)
+        cursor.close()
+        conexion.close()
 
-    cursor.close()
-    conexion.close()
+        # Enviamos a la ruta de ingreso del código, pasando el correo para que se muestre en el formulario
+        return render_template(
+            'recuperar_contrasena.html',
+            paso=2,
+            correo=correo,
+            mensaje="Revisa tu bandeja de entrada (y la carpeta de spam)."
+        )
 
-    return render_template(
-        'recuperar_contrasena.html',
-        paso=2,
-        correo=correo,
-    )
+    except Exception as e:
+        print(f"Error en solicitar_recuperacion: {e}")
+        return jsonify({"error": "Hubo un problema al procesar la solicitud"}), 500
 
-
-# RUTA 2: EL USUARIO INGRESA EL CÓDIGO Y LA NUEVA CONTRASEÑA 
+# Ruta 2: Validación del código y actualización de contraseña
 @main.route('/cambiar-contrasena', methods=['POST'])
 def cambiar_contrasena():
     correo = request.form.get('correo')
@@ -504,71 +591,72 @@ def cambiar_contrasena():
     nueva = request.form.get('nueva_contrasena')
     confirmar = request.form.get('confirmar_contrasena')
 
+    # Validación de integridad básica
     if nueva != confirmar:
         return render_template(
             'recuperar_contrasena.html',
             paso=2,
             correo=correo,
-            error="Las contraseñas no coinciden"
+            error="Las contraseñas no coinciden. Inténtalo de nuevo."
         )
 
     conexion = obtener_conexion()
+    if not conexion:
+        return jsonify({"error": "Error de conexión"}), 500
+        
     cursor = conexion.cursor(dictionary=True)
 
-    cursor.execute("""
-        SELECT codigo_recuperacion, vencimiento_codigo 
-        FROM usuarios 
-        WHERE correo_electronico = %s
-    """, (correo,))
-    usuario = cursor.fetchone()
+    try:
+        # Buscamos el token y el vencimiento guardados para ese correo
+        cursor.execute("""
+            SELECT codigo_recuperacion, vencimiento_codigo 
+            FROM usuarios 
+            WHERE correo_electronico = %s
+        """, (correo,))
+        usuario = cursor.fetchone()
 
-    if not usuario or usuario['codigo_recuperacion'] != codigo:
-        cursor.close()
-        conexion.close()
+        # Validación de autenticidad del código
+        if not usuario or usuario['codigo_recuperacion'] != codigo:
+            return render_template(
+                'recuperar_contrasena.html',
+                paso=2,
+                correo=correo,
+                error="El código de seguridad es incorrecto."
+            )
+
+        # Validación de la ventana de tiempo
+        if datetime.now() > usuario['vencimiento_codigo']:
+            return render_template(
+                'recuperar_contrasena.html',
+                paso=2,
+                correo=correo,
+                error="Este código ha expirado. Solicita uno nuevo."
+            )
+
+        # Generamos el hash y actualizamos
+        # Importante: Limpiamos los campos de recuperación (NULL)
+        nuevo_hash = generate_password_hash(nueva)
+
+        cursor.execute("""
+            UPDATE usuarios 
+            SET contrasena = %s,
+                codigo_recuperacion = NULL,
+                vencimiento_codigo = NULL
+            WHERE correo_electronico = %s
+        """, (nuevo_hash, correo))
+
+        conexion.commit()
+        print(f"Contraseña actualizada exitosamente para: {correo}")
+
+        # Redirigimos al Login con mensaje de éxito
         return render_template(
-            'recuperar_contrasena.html',
-            paso=2,
-            correo=correo,
-            error="Código incorrecto"
+            'login.html',
+            mensaje="Tu contraseña ha sido actualizada. Ya puedes iniciar sesión."
         )
 
-    if datetime.now() > usuario['vencimiento_codigo']:
+    except Exception as e:
+        print(f"Error en cambiar_contrasena: {e}")
+        return jsonify({"error": "Error interno al actualizar la contraseña"}), 500
+    finally:
         cursor.close()
         conexion.close()
-        return render_template(
-            'recuperar_contrasena.html',
-            paso=2,
-            correo=correo,
-            error="El código expiró"
-        )
-
-    nuevo_hash = generate_password_hash(nueva)
-
-    cursor.execute("""
-        UPDATE usuarios 
-        SET contrasena = %s,
-            codigo_recuperacion = NULL,
-            vencimiento_codigo = NULL
-        WHERE correo_electronico = %s
-    """, (nuevo_hash, correo))
-
-    conexion.commit()
-    cursor.close()
-    conexion.close()
-
-    return render_template(
-        'login.html',
-        mensaje="Contraseña cambiada con éxito"
-    )
-    
-@main.route('/perfil')
-def perfil_usuario():
-    if 'usuario_id' not in session:
-        return redirect(url_for('main.login'))
-
-    return render_template(
-        'perfil.html',
-        nombre=session.get('nombre'),
-        correo=session.get('correo'),
-        rol=session.get('rol')
-    )

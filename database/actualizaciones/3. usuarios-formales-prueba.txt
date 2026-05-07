@@ -1,0 +1,22 @@
+USE el_cipres;
+
+-- Actualización para el administrador
+UPDATE usuarios 
+SET 
+    nombres = 'Jhon Alexander', 
+    apellidos = 'Perez Llerena', 
+    telefono = '3223748150', 
+    correo_electronico = 'JhonAPL08@gmail.com',
+    rol = 'administrador'
+WHERE id_usuario = 1;
+
+-- Actualización para el residente
+
+UPDATE usuarios 
+SET 
+    nombres = 'Yesica', 
+    apellidos = 'Diaz Pinzon', 
+    telefono = '3219572605', 
+    correo_electronico = 'ydiaz16@uan.edu.co',
+    rol = 'residente'
+WHERE id_usuario = 2;

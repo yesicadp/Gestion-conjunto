@@ -1,0 +1,11 @@
+USE el_cipres;
+
+-- 1. Actualizar las contraseñas antiguas al nuevo formato de Hash
+SET SQL_SAFE_UPDATES = 0;
+UPDATE usuarios SET contrasena = 'scrypt:32768:8:1$nMauMRT31MJoS6vT$641517b934d0ddc35a83b5be8304c4c03598470832b6017624f09972ea98e2579b3266268ae98c9983ae1864764644a9af6208194a7da94db318ca78c3264e46';
+SET SQL_SAFE_UPDATES = 1;
+
+-- 2. Crear las columnas para el token de recuperación
+ALTER TABLE usuarios 
+ADD COLUMN codigo_recuperacion VARCHAR(8) NULL,
+ADD COLUMN vencimiento_codigo DATETIME NULL;
