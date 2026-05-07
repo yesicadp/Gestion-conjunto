@@ -660,16 +660,3 @@ def cambiar_contrasena():
     finally:
         cursor.close()
         conexion.close()
-
-# Ruta para mostrar el perfil del usuario
-@main.route('/perfil')
-def perfil_usuario():
-    if 'usuario_id' not in session:
-        return redirect(url_for('main.login'))
-
-    return render_template(
-        'perfil.html',
-        nombre=session.get('nombre'),
-        correo=session.get('correo'),
-        rol=session.get('rol')
-    )
