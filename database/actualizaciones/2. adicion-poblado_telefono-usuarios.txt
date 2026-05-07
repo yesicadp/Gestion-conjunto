@@ -1,0 +1,34 @@
+USE el_cipres;
+
+-- 1. Crear la columna telefono en la tabla de usuarios
+
+ALTER TABLE usuarios 
+ADD COLUMN telefono VARCHAR(15) NULL AFTER apellidos;
+
+
+-- 2. Poblar la columna con datos de prueba por medio de un procedimiento
+
+DELIMITER //
+
+CREATE PROCEDURE LlenarTelefonosPrueba()
+BEGIN
+    DECLARE i INT DEFAULT 1;
+    WHILE i <= 35 DO
+        -- Esto genera un número como '311-000-00X' para cada ID
+        UPDATE usuarios 
+        SET telefono = CONCAT('311-000-0', LPAD(i, 2, '0')) 
+        WHERE id_usuario = i;
+        SET i = i + 1;
+    END WHILE;
+END //
+
+DELIMITER ;
+
+-- 3. Ejecutar el procedimiento
+CALL LlenarTelefonosPrueba();
+
+-- 4. Borrar el procedimiento para dejar la base de datos limpia
+DROP PROCEDURE LlenarTelefonosPrueba;
+
+-- 5. Opcional: Verificar que funcionó
+SELECT id_usuario, nombres, apellidos, telefono FROM usuarios LIMIT 35;

@@ -38,13 +38,27 @@
 
                     <button type="submit">Ingresar</button>
                 </form>
+                {% with messages = get_flashed_messages(with_categories=true) %}
+                    {% if messages %}
+                        {% for category, message in messages %}
+                        <div class="alert alert-{{ category }}" style="color: green; margin-bottom: 15px; font-weight: 500;">
+                            {{ message }}
+                        </div>
+                        {% endfor %}
+                    {% endif %}
+                    {% endwith %}
 
+                    {# También para el mensaje directo que enviamos desde cambiar_contrasena #}
+                    {% if mensaje %}
+                        <div class="alert-success" style="color: #155724; background-color: #d4edda; padding: 10px; border-radius: 5px; margin-bottom: 15px;">
+                            {{ mensaje }}
+                        </div>
+                    {% endif %}
                 <div class="extras">
                     <a href="{{ url_for('main.en_proceso') }}">Registrar</a>
                     <a href="{{ url_for('main.recuperar_contrasena') }}">¿Olvidaste tu contraseña?</a>
                 </div>
             </div>
-
         </div>
     </div>
 

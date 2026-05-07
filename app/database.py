@@ -2,16 +2,12 @@ import mysql.connector
 from mysql.connector import Error
 
 def obtener_conexion():
-    """
-    Esta función intenta establecer la conexión con la base de datos MySQL.
-    Retorna el objeto de conexión si es exitoso, o None si falla.
-    """
     try:
         conexion = mysql.connector.connect(
             host='localhost',
             user='root',
-            password='1234', 
-            database='el_cipres'  # Conectamos a la DB de Jhonsito
+            password='1234',
+            database='el_cipres'
         )
         
         if conexion.is_connected():
