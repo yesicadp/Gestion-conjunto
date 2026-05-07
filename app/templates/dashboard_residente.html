@@ -11,6 +11,43 @@
 
     <link rel="stylesheet" href="{{ url_for('static', filename='css/dashboard.css') }}?v=3">
 </head>
+<div id="modalPerfil" class="modal-perfil">
+    <div class="modal-contenido">
+        <button class="cerrar-modal" onclick="cerrarPerfil()">×</button>
+
+        <h2>Mi perfil</h2>
+
+        <div class="perfil-info">
+            <p><strong>👤 Nombre:</strong> {{ nombre }}</p>
+            <p><strong>📞 Teléfono:</strong> {{ telefono if telefono else "No registrado" }}</p>
+            <p><strong>📧 Correo:</strong> {{ correo }}</p>
+            <p><strong>🏠 Vivienda:</strong>
+                {% if vivienda %}
+                    Casa {{ vivienda.id_vivienda }}
+                {% else %}
+                    Sin asignar
+                {% endif %}
+            </p>
+            <p><strong>🚗 Tiene vehículo:</strong>
+                {% if vivienda and vivienda.tiene_vehiculo %}
+                    Sí
+                {% else %}
+                    No
+                {% endif %}
+            </p>
+        </div>
+    </div>
+</div>
+
+<script>
+function abrirPerfil() {
+    document.getElementById("modalPerfil").style.display = "flex";
+}
+
+function cerrarPerfil() {
+    document.getElementById("modalPerfil").style.display = "none";
+}
+</script>
 <body>
 
     <!-- CONTENEDOR PRINCIPAL -->
@@ -39,12 +76,11 @@
             </div>
 
             <div class="iconos-area">
-                <a class="btn-header" href="{{ url_for('main.pagos_residente') }}" title="Pagos">🔗</a>
                 <a class="btn-header" href="{{ url_for('main.en_proceso') }}" title="Mensajes">💬</a>
                 <a class="btn-header" href="{{ url_for('main.en_proceso') }}" title="Configuración">⚙</a>
-                <a class="btn-header perfil-btn" href="{{ url_for('main.perfil_usuario') }}" title="Perfil">
+                <button class="btn-header perfil-btn" type="button" onclick="abrirPerfil()" title="Perfil">
                     <img src="{{ url_for('static', filename='img/perfil.png') }}" alt="Perfil">
-                </a>
+                </button>
             </div>
         </header>
 

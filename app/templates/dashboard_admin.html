@@ -10,6 +10,30 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Great+Vibes&family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<div id="modalPerfil" class="modal-perfil">
+    <div class="modal-contenido">
+        <button class="cerrar-modal" onclick="cerrarPerfil()">×</button>
+
+        <h2>Mi perfil</h2>
+
+        <div class="perfil-info">
+            <p><strong>👤 Nombre:</strong> {{ nombre if nombre else "Administrador" }}</p>
+            <p><strong>📞 Teléfono:</strong> {{ telefono if telefono else "No registrado" }}</p>
+            <p><strong>📧 Correo:</strong> {{ correo if correo else "admin@cipres.com" }}</p>
+        </div>
+    </div>
+</div>
+
+<script>
+function abrirPerfil() {
+    document.getElementById("modalPerfil").style.display = "flex";
+}
+
+function cerrarPerfil() {
+    document.getElementById("modalPerfil").style.display = "none";
+}
+</script>
 <body>
 
     <div class="contenedor-principal">
@@ -30,12 +54,11 @@
             </div>
 
             <div class="iconos-area">
-                <a class="btn-header" href="{{ url_for('main.gestion_pagos') }}">🔗</a>
-                <a class="btn-header" href="{{ url_for('main.en_proceso') }}">💬</a>
+                <button class="btn-header" type="button" onclick="abrirNotificaciones()" title="Notificaciones">💬</button>
                 <a class="btn-header" href="{{ url_for('main.en_proceso') }}">⚙</a>
-                <a class="btn-header perfil-btn" href="{{ url_for('main.perfil_usuario') }}" title="Perfil">
+                <button class="btn-header perfil-btn" type="button" onclick="abrirPerfil()" title="Perfil">
                     <img src="{{ url_for('static', filename='img/perfil.png') }}" alt="Perfil">
-                </a>
+                </button>
             </div>
         </header>
 

@@ -709,3 +709,48 @@ body {
     border-radius: 8px;
     font-size: 14px;
 }
+
+.modal-perfil {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.45);
+    justify-content: center;
+    align-items: center;
+    z-index: 9999;
+}
+
+.modal-contenido {
+    background: white;
+    width: 420px;
+    max-width: 90%;
+    border-radius: 18px;
+    padding: 28px;
+    position: relative;
+    box-shadow: 0 15px 40px rgba(0,0,0,0.25);
+}
+
+.modal-contenido h2 {
+    color: #8f1239;
+    margin-bottom: 20px;
+}
+
+.perfil-info p {
+    margin-bottom: 14px;
+    font-size: 16px;
+}
+
+.cerrar-modal {
+    position: absolute;
+    top: 14px;
+    right: 16px;
+    border: none;
+    background: transparent;
+    font-size: 28px;
+    cursor: pointer;
+}
+
+.perfil-btn {
+    border: none;
+    cursor: pointer;
+}
