@@ -11,6 +11,48 @@
 
     <link rel="stylesheet" href="{{ url_for('static', filename='css/dashboard.css') }}?v=3">
 </head>
+<div id="modalNotificaciones" class="modal-perfil">
+    <div class="modal-contenido">
+
+        <button class="cerrar-modal" onclick="cerrarNotificaciones()">×</button>
+
+        <h2>Notificaciones</h2>
+
+        <div class="perfil-info">
+
+            {% if anuncios %}
+
+                {% for anuncio in anuncios %}
+                    <div class="notificacion-item">
+                        <h4>{{ anuncio.titulo }}</h4>
+
+                        <p>{{ anuncio.descripcion }}</p>
+
+                        <small>
+                            {{ anuncio.fecha_publicacion }}
+                        </small>
+                    </div>
+                {% endfor %}
+
+            {% else %}
+
+                <p>No hay notificaciones disponibles.</p>
+
+            {% endif %}
+
+        </div>
+    </div>
+</div>
+
+<script>
+function abrirNotificaciones() {
+    document.getElementById("modalNotificaciones").style.display = "flex";
+}
+
+function cerrarNotificaciones() {
+    document.getElementById("modalNotificaciones").style.display = "none";
+}
+</script>
 <div id="modalPerfil" class="modal-perfil">
     <div class="modal-contenido">
         <button class="cerrar-modal" onclick="cerrarPerfil()">×</button>
@@ -76,7 +118,9 @@ function cerrarPerfil() {
             </div>
 
             <div class="iconos-area">
-                <a class="btn-header" href="{{ url_for('main.en_proceso') }}" title="Mensajes">💬</a>
+                <button class="btn-header" type="button" onclick="abrirNotificaciones()" title="Notificaciones">
+                    💬
+                </button>
                 <a class="btn-header" href="{{ url_for('main.en_proceso') }}" title="Configuración">⚙</a>
                 <button class="btn-header perfil-btn" type="button" onclick="abrirPerfil()" title="Perfil">
                     <img src="{{ url_for('static', filename='img/perfil.png') }}" alt="Perfil">

@@ -11,6 +11,48 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Great+Vibes&family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
 </head>
+<div id="modalNotificaciones" class="modal-perfil">
+    <div class="modal-contenido">
+
+        <button class="cerrar-modal" onclick="cerrarNotificaciones()">×</button>
+
+        <h2>Notificaciones</h2>
+
+        <div class="perfil-info">
+
+            {% if anuncios %}
+
+                {% for anuncio in anuncios %}
+                    <div class="notificacion-item">
+                        <h4>{{ anuncio.titulo }}</h4>
+
+                        <p>{{ anuncio.descripcion }}</p>
+
+                        <small>
+                            {{ anuncio.fecha_publicacion }}
+                        </small>
+                    </div>
+                {% endfor %}
+
+            {% else %}
+
+                <p>No hay notificaciones disponibles.</p>
+
+            {% endif %}
+
+        </div>
+    </div>
+</div>
+
+<script>
+function abrirNotificaciones() {
+    document.getElementById("modalNotificaciones").style.display = "flex";
+}
+
+function cerrarNotificaciones() {
+    document.getElementById("modalNotificaciones").style.display = "none";
+}
+</script>
 <div id="modalPerfil" class="modal-perfil">
     <div class="modal-contenido">
         <button class="cerrar-modal" onclick="cerrarPerfil()">×</button>
@@ -20,7 +62,7 @@
         <div class="perfil-info">
             <p><strong>👤 Nombre:</strong> {{ nombre if nombre else "Administrador" }}</p>
             <p><strong>📞 Teléfono:</strong> {{ telefono if telefono else "No registrado" }}</p>
-            <p><strong>📧 Correo:</strong> {{ correo if correo else "admin@cipres.com" }}</p>
+            <p><strong>📧 Correo:</strong> {{ correo if correo else "jhonapl08@gmail.com" }}</p>
         </div>
     </div>
 </div>
@@ -32,6 +74,47 @@ function abrirPerfil() {
 
 function cerrarPerfil() {
     document.getElementById("modalPerfil").style.display = "none";
+}
+</script>
+{% for vivienda in viviendas %}
+<div id="modalVivienda{{ vivienda.id_vivienda }}" class="modal-perfil">
+    <div class="modal-contenido">
+        <button class="cerrar-modal" onclick="cerrarDetalleVivienda('{{ vivienda.id_vivienda }}')">×</button>
+
+        <h2>Casa {{ vivienda.id_vivienda }}</h2>
+
+        <div class="perfil-info">
+            <p><strong>🏠 Vivienda:</strong> Casa {{ vivienda.id_vivienda }}</p>
+
+            <p><strong>👤 Residente:</strong>
+                {% if vivienda.nombres %}
+                    {{ vivienda.nombres }} {{ vivienda.apellidos }}
+                {% else %}
+                    Sin residente asignado
+                {% endif %}
+            </p>
+
+            <p><strong>💰 Estado financiero:</strong> {{ vivienda.estado_financiero }}</p>
+
+            <p><strong>🚗 Tiene vehículo:</strong>
+                {% if vivienda.tiene_vehiculo %}
+                    Sí
+                {% else %}
+                    No
+                {% endif %}
+            </p>
+        </div>
+    </div>
+</div>
+{% endfor %}
+
+<script>
+function abrirDetalleVivienda(id) {
+    document.getElementById("modalVivienda" + id).style.display = "flex";
+}
+
+function cerrarDetalleVivienda(id) {
+    document.getElementById("modalVivienda" + id).style.display = "none";
 }
 </script>
 <body>
@@ -83,7 +166,7 @@ function cerrarPerfil() {
 
                 <section class="grid-viviendas">
                     {% for vivienda in viviendas %}
-                    <a class="casa-card" href="{{ url_for('main.detalle_vivienda', id_vivienda=vivienda.id_vivienda) }}">
+                    <div class="casa-card" onclick="abrirDetalleVivienda('{{ vivienda.id_vivienda }}')">
                         <div class="casa-icono">🏠</div>
 
                         <!-- Número de la vivienda -->
@@ -108,7 +191,7 @@ function cerrarPerfil() {
                         {% else %}
                             <div class="estado estado-pendiente">Sin estado</div>
                         {% endif %}
-                    </a>
+                    </div>
                     {% endfor %}
                 </section>
             </main>
