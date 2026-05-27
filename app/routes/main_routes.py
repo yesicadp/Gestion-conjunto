@@ -2,13 +2,21 @@ from flask import Blueprint, render_template, request, redirect, url_for, jsonif
 from database import obtener_conexion
 from datetime import datetime, timedelta
 from werkzeug.security import check_password_hash, generate_password_hash
+from werkzeug.utils import secure_filename
 import smtplib
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 import string
 import secrets
+import os
 
 main = Blueprint('main', __name__)
+# Configuración para imágenes de anuncios
+UPLOAD_FOLDER = 'app/static/uploads/anuncios'
+ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif'}
+
+def allowed_file(filename):
+    return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
 # Ruta de inicio que redirige al login
 @main.route('/')
@@ -144,6 +152,9 @@ def dashboard_residente():
     """, (usuario_id,))
     reservas = cursor.fetchall()
 
+    # Obtener los 5 anuncios más recientes para el dashboard
+    cursor.execute("SELECT titulo, contenido, imagen, fecha_creacion FROM anuncios ORDER BY fecha_creacion DESC LIMIT 5")
+    anuncios_recientes = cursor.fetchall()
     cursor.close()
     conexion.close()
 
@@ -157,7 +168,8 @@ def dashboard_residente():
         factura=factura,
         total=total,
         parqueadero_asignado=parqueadero_asignado,
-        reservas=reservas
+        reservas=reservas,
+        anuncios=anuncios_recientes
     )
 
 # Ruta de dashboard para administradores
@@ -188,12 +200,16 @@ def dashboard_admin():
     cursor.execute(query)
     viviendas = cursor.fetchall()
 
+    # Obtener los 5 anuncios más recientes para el dashboard
+    cursor.execute("SELECT titulo, contenido, imagen, fecha_creacion FROM anuncios ORDER BY fecha_creacion DESC LIMIT 5")
+    anuncios_recientes = cursor.fetchall()
     cursor.close()
     conexion.close()
 
     return render_template(
         'dashboard_admin.html',
-        viviendas=viviendas
+        viviendas=viviendas,
+        anuncios=anuncios_recientes
     )
 
 # Rutas para gestionar viviendas (administrador)
@@ -389,37 +405,71 @@ def pagos_residente():
         historial=historial
     )
 
-# Rutas para gestionar reservas (Residente)
+# Rutas para gestionar reservas
 @main.route('/reservas', methods=['GET', 'POST'])
 def gestion_reservas():
     if 'usuario_id' not in session:
         return jsonify({"error": "Debe iniciar sesión para acceder"}), 401
 
     usuario_id = session['usuario_id']
+    rol = session.get('rol')
     conexion = obtener_conexion()
     if not conexion: 
         return jsonify({"error": "Error de conexión con la base de datos"}), 500
     
     cursor = conexion.cursor(dictionary=True)
 
-    #  Crear reserva
+    # Crear reserva
     if request.method == 'POST':
-        fecha_evento = request.form.get('fecha_evento')
+        fecha_evento_str = request.form.get('fecha_evento')
         
-        if not fecha_evento:
+        if not fecha_evento_str:
             return jsonify({"error": "La fecha es obligatoria"}), 400
         
         try:
-            query = "INSERT INTO reservas (id_usuario, fecha_evento, estado) VALUES (%s, %s, 'pendiente')"
-            cursor.execute(query, (usuario_id, fecha_evento))
+            # Validar 
+            fecha_evento = datetime.strptime(fecha_evento_str, '%Y-%m-%d').date()
+            if fecha_evento < datetime.now().date():
+                return jsonify({"error": "No puedes reservar en una fecha pasada"}), 400
+
+            # Validar doble reserva (que nadie más tenga ese dia pendiente o aprobado)
+            cursor.execute("""
+                SELECT id_reserva FROM reservas 
+                WHERE DATE(fecha_evento) = %s AND estado IN ('pendiente', 'aprobada')
+            """, (fecha_evento,))
+            reserva_existente = cursor.fetchone()
+
+            if reserva_existente:
+                return jsonify({"error": "Esta fecha ya se encuentra reservada o en proceso de revisión"}), 400
+
+            # Logica de auto-aprobación para el administrador
+            estado_reserva = 'aprobada' if rol == 'administrador' else 'pendiente'
+
+            query = "INSERT INTO reservas (id_usuario, fecha_evento, estado) VALUES (%s, %s, %s)"
+            cursor.execute(query, (usuario_id, fecha_evento_str, estado_reserva))
             conexion.commit()
-            return jsonify({"mensaje": "Reserva enviada con éxito. Pendiente de aprobación."}), 201
+            
+            mensaje = "Reserva aprobada automáticamente." if rol == 'administrador' else "Reserva enviada con éxito. Pendiente de aprobación."
+            return jsonify({"mensaje": mensaje}), 201
+
+        except ValueError:
+            return jsonify({"error": "Formato de fecha inválido. Use YYYY-MM-DD."}), 400
         except Exception as e:
             return jsonify({"error": f"No se pudo guardar la reserva: {str(e)}"}), 500
     
-    # Ver reservas
-    query_consultar = "SELECT * FROM reservas WHERE id_usuario = %s ORDER BY fecha_evento DESC"
-    cursor.execute(query_consultar, (usuario_id,))
+    # Ver reservas (El Admin ve las de todo el conjunto, el Residente solo las suyas)
+    if rol == 'administrador':
+        query_consultar = """
+            SELECT r.id_reserva, r.fecha_evento, r.estado, u.nombres, u.apellidos 
+            FROM reservas r
+            JOIN usuarios u ON r.id_usuario = u.id_usuario
+            ORDER BY r.fecha_evento DESC
+        """
+        cursor.execute(query_consultar)
+    else:
+        query_consultar = "SELECT id_reserva, fecha_evento, estado FROM reservas WHERE id_usuario = %s ORDER BY fecha_evento DESC"
+        cursor.execute(query_consultar, (usuario_id,))
+        
     mis_reservas = cursor.fetchall()
 
     # Formateamos las fechas para que JSON no se rompa
@@ -430,6 +480,29 @@ def gestion_reservas():
     conexion.close()
     
     return jsonify({"reservas": mis_reservas})
+
+# Nueva ruta para que el Administrador apruebe o rechace reservas
+@main.route('/admin/reservas/<int:id_reserva>', methods=['POST'])
+def actualizar_reserva(id_reserva):
+    if 'rol' not in session or session['rol'] != 'administrador':
+        return jsonify({"error": "Acceso no autorizado"}), 403
+
+    nuevo_estado = request.form.get('estado') # Debe recibir 'aprobada' o 'rechazada'
+    if nuevo_estado not in ['aprobada', 'rechazada']:
+        return jsonify({"error": "Estado no válido"}), 400
+
+    conexion = obtener_conexion()
+    cursor = conexion.cursor()
+    
+    try:
+        cursor.execute("UPDATE reservas SET estado = %s WHERE id_reserva = %s", (nuevo_estado, id_reserva))
+        conexion.commit()
+        return jsonify({"mensaje": f"Reserva {nuevo_estado} correctamente"}), 200
+    except Exception as e:
+        return jsonify({"error": f"Error al actualizar la reserva: {str(e)}"}), 500
+    finally:
+        cursor.close()
+        conexion.close()
 
 # Ruta para gestionar anuncios
 @main.route('/anuncios', methods=['GET', 'POST'])
@@ -449,22 +522,35 @@ def gestion_anuncios():
         contenido = request.form.get('contenido')
         user_id = session.get('usuario_id')
         
-        # Validamos que no envíen campos vacíos
         if not titulo or not contenido:
             return jsonify({"error": "El título y el contenido son obligatorios"}), 400
 
+        # Procesamiento de la imagen
+        ruta_imagen_bd = None
+        if 'imagen' in request.files:
+            file = request.files['imagen']
+            if file and allowed_file(file.filename):
+                filename = secure_filename(file.filename)
+                
+                # Nos aseguramos de que la carpeta exista y si no, la crea
+                os.makedirs(UPLOAD_FOLDER, exist_ok=True)
+                
+                # Guardamos la imagen fisicamente en el server
+                file.save(os.path.join(UPLOAD_FOLDER, filename))
+                
+                # Guardamos solo la ruta para la base de datos
+                ruta_imagen_bd = f'uploads/anuncios/{filename}'
+
         try:
-            # La fecha se genera automáticamente en el servidor para evitar fraudes
             fecha_creacion = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
-            
-            query = "INSERT INTO anuncios (id_usuario, titulo, contenido, fecha_creacion) VALUES (%s, %s, %s, %s)"
-            cursor.execute(query, (user_id, titulo, contenido, fecha_creacion))
+            query = "INSERT INTO anuncios (id_usuario, titulo, contenido, imagen, fecha_creacion) VALUES (%s, %s, %s, %s, %s)"
+            cursor.execute(query, (user_id, titulo, contenido, ruta_imagen_bd, fecha_creacion))
             conexion.commit()
-            return jsonify({"mensaje": "Anuncio publicado exitosamente"}), 201
+            return jsonify({"mensaje": "Anuncio publicado exitosamente"}), 201         
         except Exception as e:
             return jsonify({"error": f"Error al publicar: {str(e)}"}), 500
 
-    # Consulta de anuncios (todos los usuarios)
+    # Consulta de anuncios
     try:
         cursor.execute("SELECT * FROM anuncios ORDER BY fecha_creacion DESC")
         anuncios = cursor.fetchall()
@@ -472,12 +558,96 @@ def gestion_anuncios():
         for a in anuncios:
             a['fecha_creacion'] = str(a['fecha_creacion'])
             
-        cursor.close()
-        conexion.close()
         return jsonify({"anuncios": anuncios})
         
     except Exception as e:
         return jsonify({"error": f"Error al cargar anuncios: {str(e)}"}), 500
+    finally:
+        cursor.close()
+        conexion.close()
+
+# Rutas para gestionar parqueaderos
+@main.route('/parqueaderos', methods=['GET', 'POST'])
+def gestion_parqueaderos():
+    conexion = obtener_conexion()
+    if not conexion: 
+        return jsonify({"error": "Error de conexión con la base de datos"}), 500
+        
+    cursor = conexion.cursor(dictionary=True)
+    
+    # Si el administrador quiere asignar un parqueadero
+    if request.method == 'POST':
+        if session.get('rol') != 'administrador':
+            return jsonify({"error": "Acceso denegado. Solo administradores pueden asignar."}), 403
+            
+        id_parqueadero = request.form.get('id_parqueadero')
+        id_vivienda = request.form.get('id_vivienda')
+        
+        # 1: Verificar si la vivienda existe y tiene vehículo
+        cursor.execute("SELECT tiene_vehiculo FROM viviendas WHERE id_vivienda = %s", (id_vivienda,))
+        vivienda = cursor.fetchone()
+        
+        if not vivienda:
+            return jsonify({"error": "La vivienda ingresada no existe."}), 404
+        if not vivienda['tiene_vehiculo']:
+            return jsonify({"error": "Esta vivienda no tiene un vehículo registrado."}), 400
+            
+        # 2: Verificar si el parqueadero está realmente disponible
+        cursor.execute("SELECT estado FROM parqueaderos WHERE id_parqueadero = %s", (id_parqueadero,))
+        parqueadero = cursor.fetchone()
+        
+        if not parqueadero or parqueadero['estado'] != 'disponible':
+            return jsonify({"error": "El parqueadero no existe o ya está ocupado."}), 400
+            
+        # 3: Verificar que la vivienda no tenga ya un parqueadero asignado
+        cursor.execute("""
+            SELECT id_parqueadero FROM asignacion_parqueaderos 
+            WHERE id_vivienda = %s AND (fecha_fin IS NULL OR fecha_fin > NOW())
+        """, (id_vivienda,))
+        if cursor.fetchone():
+            return jsonify({"error": "Esta vivienda ya tiene un parqueadero activo asignado."}), 400
+
+        try:
+            # Transacción segura (Si falla una, no se hace ninguna)
+            fecha_inicio = datetime.now().strftime('%Y-%m-%d')
+            cursor.execute("UPDATE parqueaderos SET estado = 'ocupado' WHERE id_parqueadero = %s", (id_parqueadero,))
+            cursor.execute(
+                "INSERT INTO asignacion_parqueaderos (id_parqueadero, id_vivienda, fecha_inicio) VALUES (%s, %s, %s)", 
+                (id_parqueadero, id_vivienda, fecha_inicio)
+            )
+            conexion.commit()
+            return jsonify({"mensaje": "Parqueadero asignado con éxito"}), 201
+            
+        except Exception as e:
+            conexion.rollback()  # Deshace cambios si hay error
+            return jsonify({"error": f"Error en la asignación: {str(e)}"}), 500
+
+    # Si es un GET: Ver todos los parqueaderos y a quién pertenecen
+    try:
+        query = """
+            SELECT 
+                p.id_parqueadero, 
+                p.estado, 
+                v.id_vivienda,
+                u.nombres, 
+                u.apellidos
+            FROM parqueaderos p
+            LEFT JOIN asignacion_parqueaderos ap 
+                ON p.id_parqueadero = ap.id_parqueadero 
+                AND (ap.fecha_fin IS NULL OR ap.fecha_fin > NOW())
+            LEFT JOIN viviendas v ON ap.id_vivienda = v.id_vivienda
+            LEFT JOIN usuarios u ON v.id_usuario = u.id_usuario
+            ORDER BY p.id_parqueadero ASC
+        """
+        cursor.execute(query)
+        parqueaderos = cursor.fetchall()
+        return jsonify({"parqueaderos": parqueaderos})
+        
+    except Exception as e:
+        return jsonify({"error": f"Error al consultar parqueaderos: {str(e)}"}), 500
+    finally:
+        cursor.close()
+        conexion.close()
 
 # Ruta para mostrar página en proceso
 @main.route('/en-proceso')
