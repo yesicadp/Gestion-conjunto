@@ -82,6 +82,7 @@ CREATE TABLE anuncios (
     titulo VARCHAR(100) NOT NULL,
     contenido TEXT NOT NULL,
     fecha_creacion DATETIME NOT NULL,
+    imagen VARCHAR(255) NULL,
 
     CONSTRAINT fk_anuncio_usuario
     FOREIGN KEY (id_usuario) REFERENCES usuarios(id_usuario)
