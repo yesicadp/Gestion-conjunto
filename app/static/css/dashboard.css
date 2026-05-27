@@ -797,3 +797,66 @@ body {
 .casa-card:hover {
     transform: scale(1.02);
 }
+
+.seccion-parqueaderos {
+    display: grid;
+    grid-template-columns: 1.8fr 1.2fr;
+    gap: 22px;
+    margin-top: 15px;
+}
+.panel-sorteo-top {
+    grid-column: 1 / -1;
+    background: white;
+    border: 2px solid #cfcfcf;
+    border-radius: 15px;
+    padding: 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+.info-sorteo h3 { color: #8f1239; font-size: 18px; margin-bottom: 6px; }
+.mini-datos { display: flex; gap: 20px; font-size: 15px; }
+.mini-datos span strong { color: #8f1239; }
+
+.btn-sorteo-tierno {
+    background-color: #f3d5e4;
+    color: #8f1239;
+    border: 2px solid #e8c5d8;
+    padding: 12px 22px;
+    border-radius: 25px;
+    font-family: 'Poppins', sans-serif;
+    font-weight: 600;
+    font-size: 15px;
+    cursor: pointer;
+    transition: 0.2s ease;
+}
+.btn-sorteo-tierno:hover { background-color: #e8c5d8; transform: scale(1.03); }
+
+.grid-parqueaderos-mapa { display: grid; grid-template-columns: repeat(2, 1fr); gap: 18px; }
+.slot-parqueadero {
+    background-color: #f8f8f8;
+    border-radius: 14px;
+    padding: 18px;
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    min-height: 140px;
+    transition: 0.2s ease;
+}
+.slot-libre { background-color: #ebf7ee; border: 2px solid #9ae37f; }
+.slot-ocupado { background-color: #fcf0f5; border: 2px solid #e8c5d8; }
+.slot-parqueadero h3 { font-size: 26px; color: #8f1239; margin-bottom: 2px; }
+.slot-parqueadero p { font-size: 14px; color: #444; }
+
+.badge-tierno { padding: 4px 12px; border-radius: 15px; font-size: 12px; font-weight: bold; margin-bottom: 8px; }
+.badge-libre { background-color: #9ae37f; color: white; }
+.badge-ocupado { background-color: #e8c5d8; color: #8f1239; }
+
+.formulario-asignar-box { background: #fff; border: 2px solid #b8b8b8; border-radius: 12px; padding: 22px; height: fit-content; }
+.formulario-asignar-box h2 { color: #8f1239; font-size: 20px; margin-bottom: 15px; text-align: center; }
+.formulario-asignar-box label { font-weight: 600; font-size: 14px; display: block; margin-bottom: 5px; }
+.formulario-asignar-box select { width: 100%; height: 38px; border: 1px solid #b8b8b8; border-radius: 10px; margin-bottom: 18px; padding: 5px 10px; font-family: 'Poppins', sans-serif; }
+.btn-guardar-cupo { background: #8f1239; color: white; border: none; border-radius: 20px; padding: 12px 35px; cursor: pointer; width: 100%; font-family: 'Poppins', sans-serif; font-weight: bold; transition: 0.2s; }
+.btn-guardar-cupo:hover { background: #6f0d2c; }

@@ -1,6 +1,6 @@
 from flask import Blueprint, render_template, request, redirect, url_for, jsonify, session
 from database import obtener_conexion
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, date
 from werkzeug.security import check_password_hash, generate_password_hash
 from werkzeug.utils import secure_filename
 import smtplib
@@ -9,6 +9,7 @@ from email.mime.multipart import MIMEMultipart
 import string
 import secrets
 import os
+import random
 
 main = Blueprint('main', __name__)
 # Configuración para imágenes de anuncios
@@ -566,89 +567,135 @@ def gestion_anuncios():
         cursor.close()
         conexion.close()
 
-# Rutas para gestionar parqueaderos
+# Ruta para gestionar parqueaderos de administrador
 @main.route('/parqueaderos', methods=['GET', 'POST'])
-def gestion_parqueaderos():
-    conexion = obtener_conexion()
-    if not conexion: 
-        return jsonify({"error": "Error de conexión con la base de datos"}), 500
-        
-    cursor = conexion.cursor(dictionary=True)
+def parqueaderos_admin():
+    if 'rol' not in session or session['rol'] != 'administrador':
+        return jsonify({"error": "Acceso no autorizado"}), 403
     
-    # Si el administrador quiere asignar un parqueadero
+    conexion = obtener_conexion()
+    cursor = conexion.cursor(dictionary=True)
+
+    # === LÓGICA DE DÍAS RESTANTES DEL TRIMESTRE EN TIEMPO REAL ===
+    hoy = date.today()
+    año_actual = hoy.year
+    
+    # Determinar las fechas de fin de cada trimestre
+    if hoy.month <= 3:
+        fecha_fin_trimestre = date(año_actual, 3, 31)
+    elif hoy.month <= 6:
+        fecha_fin_trimestre = date(año_actual, 6, 30)
+    elif hoy.month <= 9:
+        fecha_fin_trimestre = date(año_actual, 9, 30)
+    else:
+        fecha_fin_trimestre = date(año_actual, 12, 31)
+    
+    # Calcular días restantes
+    dias_restantes = (fecha_fin_trimestre - hoy).days
+
+    # === CONSULTA BASE: TRAER VIVIENDAS Y USUARIOS ===
+    query_viviendas = """
+        SELECT 
+            v.id_vivienda, 
+            v.tiene_vehiculo,
+            u.nombres AS nombres_residente, 
+            u.apellidos AS apellidos_residente
+        FROM viviendas v
+        LEFT JOIN usuarios u ON v.id_usuario = u.id_usuario
+        ORDER BY v.id_vivienda ASC
+    """
+    cursor.execute(query_viviendas)
+    lista_viviendas = cursor.fetchall()
+    
+    # Filtrar en Python quiénes tienen vehículo registrado (Aptos para sorteo)
+    casas_con_carro = [c for c in lista_viviendas if c['tiene_vehiculo'] == 1]
+    total_casas_con_carro = len(casas_con_carro)
+
+    # === MANEJO DE ACCIONES (POST) ===
     if request.method == 'POST':
-        if session.get('rol') != 'administrador':
-            return jsonify({"error": "Acceso denegado. Solo administradores pueden asignar."}), 403
-            
-        id_parqueadero = request.form.get('id_parqueadero')
-        id_vivienda = request.form.get('id_vivienda')
-        
-        # 1: Verificar si la vivienda existe y tiene vehículo
-        cursor.execute("SELECT tiene_vehiculo FROM viviendas WHERE id_vivienda = %s", (id_vivienda,))
-        vivienda = cursor.fetchone()
-        
-        if not vivienda:
-            return jsonify({"error": "La vivienda ingresada no existe."}), 404
-        if not vivienda['tiene_vehiculo']:
-            return jsonify({"error": "Esta vivienda no tiene un vehículo registrado."}), 400
-            
-        # 2: Verificar si el parqueadero está realmente disponible
-        cursor.execute("SELECT estado FROM parqueaderos WHERE id_parqueadero = %s", (id_parqueadero,))
-        parqueadero = cursor.fetchone()
-        
-        if not parqueadero or parqueadero['estado'] != 'disponible':
-            return jsonify({"error": "El parqueadero no existe o ya está ocupado."}), 400
-            
-        # 3: Verificar que la vivienda no tenga ya un parqueadero asignado
-        cursor.execute("""
-            SELECT id_parqueadero FROM asignacion_parqueaderos 
-            WHERE id_vivienda = %s AND (fecha_fin IS NULL OR fecha_fin > NOW())
-        """, (id_vivienda,))
-        if cursor.fetchone():
-            return jsonify({"error": "Esta vivienda ya tiene un parqueadero activo asignado."}), 400
+        accion = request.form.get('accion')
 
-        try:
-            # Transacción segura (Si falla una, no se hace ninguna)
-            fecha_inicio = datetime.now().strftime('%Y-%m-%d')
-            cursor.execute("UPDATE parqueaderos SET estado = 'ocupado' WHERE id_parqueadero = %s", (id_parqueadero,))
-            cursor.execute(
-                "INSERT INTO asignacion_parqueaderos (id_parqueadero, id_vivienda, fecha_inicio) VALUES (%s, %s, %s)", 
-                (id_parqueadero, id_vivienda, fecha_inicio)
-            )
-            conexion.commit()
-            return jsonify({"mensaje": "Parqueadero asignado con éxito"}), 201
+        # CASO A: EL ADMINISTRADOR DICTAMINÓ UN SORTEO AUTOMÁTICO
+        if accion == 'sorteo_aleatorio':
+            # Elegimos un máximo de 8 casas al azar que tengan carro
+            cupos_disponibles = min(8, len(casas_con_carro))
+            casas_ganadoras = random.sample(casas_con_carro, cupos_disponibles)
             
-        except Exception as e:
-            conexion.rollback()  # Deshace cambios si hay error
-            return jsonify({"error": f"Error en la asignación: {str(e)}"}), 500
+            # Guardamos el resultado del sorteo en la sesión para simular persistencia sin alterar tablas
+            resultado_sorteo = {}
+            for i, casa in enumerate(casas_ganadoras):
+                resultado_sorteo[str(i + 1)] = casa  # Guarda el parqueadero 1 al 8
+            
+            session['parqueaderos_sorteados'] = resultado_sorteo
+            session.modified = True
 
-    # Si es un GET: Ver todos los parqueaderos y a quién pertenecen
-    try:
-        query = """
-            SELECT 
-                p.id_parqueadero, 
-                p.estado, 
-                v.id_vivienda,
-                u.nombres, 
-                u.apellidos
-            FROM parqueaderos p
-            LEFT JOIN asignacion_parqueaderos ap 
-                ON p.id_parqueadero = ap.id_parqueadero 
-                AND (ap.fecha_fin IS NULL OR ap.fecha_fin > NOW())
-            LEFT JOIN viviendas v ON ap.id_vivienda = v.id_vivienda
-            LEFT JOIN usuarios u ON v.id_usuario = u.id_usuario
-            ORDER BY p.id_parqueadero ASC
-        """
-        cursor.execute(query)
-        parqueaderos = cursor.fetchall()
-        return jsonify({"parqueaderos": parqueaderos})
-        
-    except Exception as e:
-        return jsonify({"error": f"Error al consultar parqueaderos: {str(e)}"}), 500
-    finally:
+        # CASO B: ASIGNACIÓN MANUAL INDIVIDUAL
+        elif accion == 'asignacion_manual':
+            id_parqueadero = request.form.get('id_parqueadero')
+            id_vivienda = request.form.get('id_vivienda')
+            
+            # Buscamos los datos de la casa seleccionada
+            casa_seleccionada = next((c for c in lista_viviendas if str(c['id_vivienda']) == str(id_vivienda)), None)
+            
+            if casa_seleccionada:
+                # Si no existe el almacén del sorteo en sesión, lo creamos vacío
+                if 'parqueaderos_sorteados' not in session:
+                    session['parqueaderos_sorteados'] = {}
+                
+                # Desasignar la casa de cualquier otro parqueadero para que no se repita
+                session['parqueaderos_sorteados'] = {k: v for k, v in session['parqueaderos_sorteados'].items() if str(v['id_vivienda']) != str(id_vivienda)}
+                
+                # Asignar al nuevo parqueadero
+                session['parqueaderos_sorteados'][str(id_parqueadero)] = casa_seleccionada
+                session.modified = True
+
         cursor.close()
         conexion.close()
+        return redirect(url_for('main.parqueaderos_admin'))
 
+    # === CONSTRUCCIÓN DEL MAPA VISUAL PARA EL GET ===
+    # Consultamos los 8 parqueaderos físicos de tu tabla
+    cursor.execute("SELECT id_parqueadero, estado FROM parqueaderos ORDER BY id_parqueadero ASC")
+    parqueaderos_db = cursor.fetchall()
+
+    parqueaderos_finales = []
+    sorteo_actual = session.get('parqueaderos_sorteados', {})
+
+    for p in parqueaderos_db:
+        id_p_str = str(p['id_parqueadero'])
+        
+        # Si este parqueadero fue asignado en el sorteo de la sesión
+        if id_p_str in sorteo_actual:
+            info_casa = sorteo_actual[id_p_str]
+            parqueaderos_finales.append({
+                'id_parqueadero': p['id_parqueadero'],
+                'estado': 'ocupado',
+                'id_vivienda': info_casa['id_vivienda'],
+                'nombres_residente': info_casa['nombres_residente'],
+                'apellidos_residente': info_casa['apellidos_residente']
+            })
+        else:
+            # Si está libre
+            parqueaderos_finales.append({
+                'id_parqueadero': p['id_parqueadero'],
+                'estado': 'disponible',
+                'id_vivienda': None,
+                'nombres_residente': None,
+                'apellidos_residente': None
+            })
+
+    cursor.close()
+    conexion.close()
+
+    return render_template(
+        'parqueaderos_admin.html',
+        parqueaderos=parqueaderos_finales,
+        lista_viviendas=lista_viviendas,
+        casas_con_carro=casas_con_carro,
+        total_casas_vehiculo=total_casas_con_carro,
+        dias_restantes=dias_restantes
+    )
+    
 # Ruta para mostrar página en proceso
 @main.route('/en-proceso')
 def en_proceso():

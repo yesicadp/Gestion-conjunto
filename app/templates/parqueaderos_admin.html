@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Parqueaderos - El Ciprés</title>
+
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/dashboard.css') }}?v=6">
+    <link href="https://fonts.googleapis.com/css2?family=Great+Vibes&family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+
+<div class="contenedor-principal">
+
+    <header class="header">
+        <div class="logo-area">
+            <p class="texto-superior">Agrupación de Vivienda</p>
+            <h1 class="logo">El Ciprés</h1>
+        </div>
+        <div class="bienvenida-area">
+            <p>Panel de Administración</p>
+            <h2>Gestión de Parqueaderos</h2>
+        </div>
+    </header>
+
+    <div class="contenido-general">
+        <aside class="sidebar">
+            <ul>
+                <li><a href="{{ url_for('main.dashboard_admin') }}">Inicio</a></li>
+                <li><a href="{{ url_for('main.gestion_pagos') }}">Pagos</a></li>
+                <li><a href="{{ url_for('main.parqueaderos_admin') }}">Parqueaderos</a></li>
+                <li><a href="{{ url_for('main.en_proceso') }}">Reservas</a></li>
+                <li><a href="{{ url_for('main.en_proceso') }}">Anuncios</a></li>
+                <li><a href="{{ url_for('main.logout') }}">Cerrar sesión</a></li>
+            </ul>
+        </aside>
+
+        <main class="main">
+            <div class="seccion-parqueaderos">
+
+                <div class="panel-sorteo-top">
+                    <div class="info-sorteo">
+                        <h3>🎲 Control de Asignación Aleatoria Automática</h3>
+                        <div class="mini-datos">
+                            <span>Cupos Totales: <strong>8</strong></span>
+                            <span>Casas Aptas (Con Vehículo): <strong>{{ total_casas_vehiculo }}</strong></span>
+                            <span>Próximo Sorteo: <strong>Vence en: {{ dias_restantes }} días</strong></span>
+                        </div>
+                    </div>
+                    <form method="POST" action="{{ url_for('main.parqueaderos_admin') }}">
+                        <input type="hidden" name="accion" value="sorteo_aleatorio">
+                        <button 
+                            type="submit" 
+                            class="btn-sorteo-tierno"
+                            onclick="return confirm('¿Seguro que deseas realizar un nuevo sorteo? Esto cambiará las asignaciones actuales.')">
+                            🎲 Realizar Sorteo Trimestral
+                        </button>
+                </div>
+
+                <div class="grid-parqueaderos-mapa">
+                    {% for p in parqueaderos %}
+                        {% if p.id_vivienda %}
+                            <div class="slot-parqueadero slot-ocupado">
+                                <h3>P-{{ p.id_parqueadero }}</h3>
+                                <span class="badge-tierno badge-ocupado">Ocupado</span>
+                                <p><strong>Casa {{ p.id_vivienda }}</strong></p>
+                                <p>{{ p.nombres_residente or '' }} {{ p.apellidos_residente or '' }}</p>
+                            </div>
+                        {% else %}
+                            <div class="slot-parqueadero slot-libre">
+                                <h3>P-{{ p.id_parqueadero }}</h3>
+                                <span class="badge-tierno badge-libre">Disponible</span>
+                                <p style="color: #555;">Libre para asignación</p>
+                            </div>
+                        {% endif %}
+                    {% endfor %}
+                </div>
+
+                <div class="formulario-asignar-box">
+                    <h2>Asignar Cupo Manual</h2>
+                    <form method="POST" action="{{ url_for('main.parqueaderos_admin') }}">
+                        <input type="hidden" name="accion" value="asignacion_manual">
+                        
+                        <label for="id_parqueadero">Seleccionar Parqueadero:</label>
+                        <select name="id_parqueadero" id="id_parqueadero" required>
+                            <option value="">-- Elige un P- --</option>
+                            {% for p in parqueaderos %}
+                                <option value="{{ p.id_parqueadero }}" {% if p.id_vivienda %}disabled{% endif %}>
+                                    Parqueadero P-{{ p.id_parqueadero }}
+                                    {% if p.id_vivienda %}(Ocupado){% else %}(Disponible){% endif %}
+                                </option>
+                            {% endfor %}
+                        </select>
+
+                        <label for="id_vivienda">Seleccionar Vivienda:</label>
+                        <select name="id_vivienda" id="id_vivienda" required>
+                            <option value="">-- Elige una Casa --</option>
+                            {% for casa in casas_con_carro %}
+                                <option value="{{ casa.id_vivienda }}">
+                                    Casa {{ casa.id_vivienda }} - {{ casa.nombres_residente }} {{ casa.apellidos_residente }}
+                                </option>
+                            {% endfor %}
+                        </select>
+
+                        <button type="submit" class="btn-guardar-cupo">Guardar Cambios</button>
+                    </form>
+                </div>
+
+            </div>
+        </main>
+    </div>
+</div>
+
+</body>
+</html>
