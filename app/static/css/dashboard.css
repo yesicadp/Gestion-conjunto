@@ -860,3 +860,65 @@ body {
 .formulario-asignar-box select { width: 100%; height: 38px; border: 1px solid #b8b8b8; border-radius: 10px; margin-bottom: 18px; padding: 5px 10px; font-family: 'Poppins', sans-serif; }
 .btn-guardar-cupo { background: #8f1239; color: white; border: none; border-radius: 20px; padding: 12px 35px; cursor: pointer; width: 100%; font-family: 'Poppins', sans-serif; font-weight: bold; transition: 0.2s; }
 .btn-guardar-cupo:hover { background: #6f0d2c; }
+
+.seccion-mi-parqueadero {
+    width: 100%;
+    max-width: 850px;
+    margin: 40px auto;
+}
+
+.tarjeta-estado-parqueadero {
+    padding: 45px;
+    border-radius: 25px;
+    text-align: center;
+    box-shadow: 0 4px 14px rgba(0,0,0,0.10);
+    margin-bottom: 30px;
+}
+
+.tarjeta-estado-parqueadero.asignado {
+    background-color: #e3f8e8;
+    border: 2px solid #a6dfb4;
+}
+
+.tarjeta-estado-parqueadero.no-asignado {
+    background-color: #f8eaf1;
+    border: 2px solid #e6b8cc;
+}
+
+.icono-parqueadero {
+    font-size: 55px;
+    margin-bottom: 15px;
+}
+
+.tarjeta-estado-parqueadero h2 {
+    color: #9b0f3f;
+    font-size: 28px;
+    margin-bottom: 15px;
+}
+
+.tarjeta-estado-parqueadero p {
+    font-size: 17px;
+    color: #333;
+}
+
+.historial-parqueaderos {
+    background-color: white;
+    border: 1px solid #ddd;
+    border-radius: 18px;
+    padding: 20px;
+    box-shadow: 0 3px 10px rgba(0,0,0,0.08);
+}
+
+.historial-parqueaderos summary {
+    cursor: pointer;
+    font-weight: 700;
+    color: #9b0f3f;
+    font-size: 17px;
+}
+
+.item-historial {
+    margin-top: 18px;
+    padding: 15px;
+    background-color: #fafafa;
+    border-radius: 12px;
+}

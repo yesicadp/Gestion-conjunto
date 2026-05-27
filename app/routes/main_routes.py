@@ -696,6 +696,45 @@ def parqueaderos_admin():
         dias_restantes=dias_restantes
     )
     
+@main.route('/parqueadero-residente')
+def parqueadero_residente():
+    if 'rol' not in session or session['rol'] != 'residente':
+        return jsonify({"error": "Acceso no autorizado"}), 403
+
+    id_usuario = session.get('id_usuario')
+
+    conexion = obtener_conexion()
+    cursor = conexion.cursor(dictionary=True)
+
+    cursor.execute("""
+        SELECT id_vivienda
+        FROM viviendas
+        WHERE id_usuario = %s
+    """, (id_usuario,))
+    vivienda = cursor.fetchone()
+
+    parqueadero_asignado = None
+
+    if vivienda:
+        sorteo_actual = session.get('parqueaderos_sorteados', {})
+
+        for id_parqueadero, casa in sorteo_actual.items():
+            if str(casa['id_vivienda']) == str(vivienda['id_vivienda']):
+                parqueadero_asignado = {
+                    'id_parqueadero': id_parqueadero,
+                    'id_vivienda': vivienda['id_vivienda']
+                }
+                break
+
+    cursor.close()
+    conexion.close()
+
+    return render_template(
+        'parqueadero_residente.html',
+        parqueadero_asignado=parqueadero_asignado,
+        fecha_fin='30 de junio de 2026'
+    )    
+    
 # Ruta para mostrar página en proceso
 @main.route('/en-proceso')
 def en_proceso():

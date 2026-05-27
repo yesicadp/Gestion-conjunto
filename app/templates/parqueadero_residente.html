@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Mi Parqueadero - El Ciprés</title>
+
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/dashboard.css') }}?v=7">
+    <link href="https://fonts.googleapis.com/css2?family=Great+Vibes&family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+
+<div class="contenedor-principal">
+
+    <header class="header">
+        <div class="logo-area">
+            <p class="texto-superior">Agrupación de Vivienda</p>
+            <h1 class="logo">El Ciprés</h1>
+        </div>
+
+        <div class="bienvenida-area">
+            <h5 class="text-center">Bienvenido a El Ciprés</h5>
+        </div>
+    </header>
+
+    <div class="contenido-general">
+
+        <aside class="sidebar">
+            <ul>
+                <li><a href="{{ url_for('main.dashboard_residente') }}">Inicio</a></li>
+                <li><a href="{{ url_for('main.pagos_residente') }}">Pagos</a></li>
+                <li><a href="{{ url_for('main.parqueadero_residente') }}">Mi Parqueadero</a></li>
+                <li><a href="{{ url_for('main.en_proceso') }}">Reservas</a></li>
+                <li><a href="{{ url_for('main.en_proceso') }}">Anuncios</a></li>
+                <li><a href="{{ url_for('main.logout') }}">Cerrar sesión</a></li>
+            </ul>
+        </aside>
+
+        <main class="main">
+
+            <section class="seccion-mi-parqueadero">
+
+                {% if parqueadero_asignado %}
+                    <div class="tarjeta-estado-parqueadero asignado">
+                        <div class="icono-parqueadero">🚗</div>
+                        <h2>¡Felicidades!</h2>
+                        <p>
+                            Tienes asignado el 
+                            <strong>Parqueadero P-{{ parqueadero_asignado.id_parqueadero }}</strong>
+                            hasta el <strong>{{ fecha_fin }}</strong>.
+                        </p>
+                    </div>
+                {% else %}
+                    <div class="tarjeta-estado-parqueadero no-asignado">
+                        <div class="icono-parqueadero">🌸</div>
+                        <h2>No saliste seleccionado este trimestre</h2>
+                        <p>
+                            Por ahora no tienes parqueadero asignado.
+                            ¡Mucha suerte en el próximo sorteo!
+                        </p>
+                    </div>
+                {% endif %}
+
+                <details class="historial-parqueaderos">
+                    <summary>Ver historial de sorteos</summary>
+
+                    <div class="item-historial">
+                        <p><strong>Trimestre actual:</strong></p>
+                        {% if parqueadero_asignado %}
+                            <p>Asignado al Parqueadero P-{{ parqueadero_asignado.id_parqueadero }}</p>
+                        {% else %}
+                            <p>No seleccionado en este sorteo.</p>
+                        {% endif %}
+                    </div>
+
+                    <div class="item-historial">
+                        <p><strong>Trimestres anteriores:</strong></p>
+                        <p>Sin registros anteriores por el momento.</p>
+                    </div>
+                </details>
+
+            </section>
+
+        </main>
+    </div>
+</div>
+
+</body>
+</html>
