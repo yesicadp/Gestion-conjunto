@@ -505,67 +505,120 @@ def reservas_admin():
         reservas=reservas
     )
 
-# Ruta para gestionar anuncios
-@main.route('/anuncios', methods=['GET', 'POST'])
-def gestion_anuncios():
+# Página de anuncios para residentes
+@main.route('/anuncios-residente')
+def anuncios_residente():
+    if 'rol' not in session or session['rol'] != 'residente':
+        return redirect(url_for('main.login'))
+
     conexion = obtener_conexion()
-    if not conexion: 
-        return jsonify({"error": "No hay conexión con la base de datos"}), 500
-    
+    if not conexion:
+        return "Error de conexión a la base de datos", 500
+
     cursor = conexion.cursor(dictionary=True)
-    
-    # Publicación de anuncio (solo administradores)
+
+    cursor.execute("""
+        SELECT id_anuncio, titulo, contenido, imagen, fecha_creacion
+        FROM anuncios
+        ORDER BY fecha_creacion DESC
+    """)
+
+    anuncios = cursor.fetchall()
+
+    cursor.close()
+    conexion.close()
+
+    return render_template(
+        'anuncios_residente.html',
+        anuncios=anuncios
+    )
+
+
+# Página de anuncios para administrador
+@main.route('/anuncios-admin', methods=['GET', 'POST'])
+def anuncios_admin():
+    if 'rol' not in session or session['rol'] != 'administrador':
+        return redirect(url_for('main.login'))
+
+    conexion = obtener_conexion()
+    if not conexion:
+        return "Error de conexión a la base de datos", 500
+
+    cursor = conexion.cursor(dictionary=True)
+
     if request.method == 'POST':
-        if 'rol' not in session or session['rol'] != 'administrador':
-            return jsonify({"error": "Acceso denegado. Solo administradores pueden publicar anuncios."}), 403
-            
         titulo = request.form.get('titulo')
         contenido = request.form.get('contenido')
-        user_id = session.get('usuario_id')
-        
-        if not titulo or not contenido:
-            return jsonify({"error": "El título y el contenido son obligatorios"}), 400
+        id_usuario = session['usuario_id']
 
-        # Procesamiento de la imagen
-        ruta_imagen_bd = None
+        imagen = None
+
         if 'imagen' in request.files:
-            file = request.files['imagen']
-            if file and allowed_file(file.filename):
-                filename = secure_filename(file.filename)
-                
-                # Nos aseguramos de que la carpeta exista y si no, la crea
+            archivo = request.files['imagen']
+
+            if archivo and archivo.filename != '' and allowed_file(archivo.filename):
+                nombre_archivo = secure_filename(archivo.filename)
+
                 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
-                
-                # Guardamos la imagen fisicamente en el server
-                file.save(os.path.join(UPLOAD_FOLDER, filename))
-                
-                # Guardamos solo la ruta para la base de datos
-                ruta_imagen_bd = f'uploads/anuncios/{filename}'
 
-        try:
-            fecha_creacion = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
-            query = "INSERT INTO anuncios (id_usuario, titulo, contenido, imagen, fecha_creacion) VALUES (%s, %s, %s, %s, %s)"
-            cursor.execute(query, (user_id, titulo, contenido, ruta_imagen_bd, fecha_creacion))
+                ruta_guardado = os.path.join(UPLOAD_FOLDER, nombre_archivo)
+                archivo.save(ruta_guardado)
+
+                imagen = f'uploads/anuncios/{nombre_archivo}'
+
+        if titulo and contenido:
+            cursor.execute("""
+                INSERT INTO anuncios (id_usuario, titulo, contenido, imagen, fecha_creacion)
+                VALUES (%s, %s, %s, %s, NOW())
+            """, (id_usuario, titulo, contenido, imagen))
+
             conexion.commit()
-            return jsonify({"mensaje": "Anuncio publicado exitosamente"}), 201         
-        except Exception as e:
-            return jsonify({"error": f"Error al publicar: {str(e)}"}), 500
 
-    # Consulta de anuncios
-    try:
-        cursor.execute("SELECT * FROM anuncios ORDER BY fecha_creacion DESC")
-        anuncios = cursor.fetchall()
-        
-        for a in anuncios:
-            a['fecha_creacion'] = str(a['fecha_creacion'])
-            
-        return jsonify({"anuncios": anuncios})
-        
-    except Exception as e:
-        return jsonify({"error": f"Error al cargar anuncios: {str(e)}"}), 500
-    finally:
         cursor.close()
         conexion.close()
+
+        return redirect(url_for('main.anuncios_admin'))
+
+    cursor.execute("""
+        SELECT id_anuncio, titulo, contenido, imagen, fecha_creacion
+        FROM anuncios
+        ORDER BY fecha_creacion DESC
+    """)
+
+    anuncios = cursor.fetchall()
+
+    cursor.close()
+    conexion.close()
+
+    return render_template(
+        'anuncios_admin.html',
+        anuncios=anuncios
+    )
+
+
+# Eliminar anuncio
+@main.route('/eliminar-anuncio/<int:id_anuncio>', methods=['POST'])
+def eliminar_anuncio(id_anuncio):
+    if 'rol' not in session or session['rol'] != 'administrador':
+        return redirect(url_for('main.login'))
+
+    conexion = obtener_conexion()
+    if not conexion:
+        return "Error de conexión a la base de datos", 500
+
+    cursor = conexion.cursor(dictionary=True)
+
+    cursor.execute("""
+        DELETE FROM anuncios
+        WHERE id_anuncio = %s
+    """, (id_anuncio,))
+
+    conexion.commit()
+
+    cursor.close()
+    conexion.close()
+
+    return redirect(url_for('main.anuncios_admin'))
 
 # Ruta para gestionar parqueaderos de administrador
 @main.route('/parqueaderos', methods=['GET', 'POST'])

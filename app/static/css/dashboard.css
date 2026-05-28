@@ -1182,3 +1182,214 @@ body {
 .btn-rechazar {
     background-color: #b32626;
 }
+
+/* ===== ANUNCIOS RESIDENTE ===== */
+
+.contenedor-anuncios {
+    width: 100%;
+}
+
+.grid-anuncios {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+    gap: 25px;
+    margin-top: 30px;
+}
+
+.card-anuncio {
+    background: white;
+    border-radius: 24px;
+    overflow: hidden;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.08);
+    transition: 0.3s ease;
+    border: 2px solid transparent;
+}
+
+.card-anuncio:hover {
+    transform: translateY(-5px);
+}
+
+.imagen-anuncio {
+    width: 100%;
+    height: 220px;
+    object-fit: cover;
+}
+
+.contenido-anuncio {
+    padding: 20px;
+}
+
+.top-anuncio {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 15px;
+}
+
+.badge-anuncio {
+    padding: 7px 14px;
+    border-radius: 30px;
+    font-size: 12px;
+    font-weight: 600;
+    font-family: 'Poppins', sans-serif;
+}
+
+.badge-mantenimiento {
+    background-color: #d8f3dc;
+    color: #2d6a4f;
+}
+
+.badge-urgente {
+    background-color: #ffd6d6;
+    color: #b32626;
+}
+
+.badge-evento {
+    background-color: #efe0ff;
+    color: #6a1b9a;
+}
+
+.fecha-anuncio {
+    font-size: 12px;
+    color: #888;
+    font-family: 'Poppins', sans-serif;
+}
+
+.card-anuncio h3 {
+    font-size: 22px;
+    color: #8f1239;
+    margin-bottom: 12px;
+    font-family: 'Poppins', sans-serif;
+}
+
+.card-anuncio p {
+    color: #555;
+    line-height: 1.7;
+    font-size: 14px;
+}
+
+.categoria-mantenimiento {
+    border-color: #b7e4c7;
+}
+
+.categoria-urgente {
+    border-color: #ffb3c1;
+}
+
+.categoria-evento {
+    border-color: #d0bfff;
+}
+
+/* ===== ADMIN ANUNCIOS ===== */
+
+.contenedor-anuncios-admin {
+    width: 100%;
+}
+
+.layout-anuncios-admin {
+    display: grid;
+    grid-template-columns: 2fr 1fr;
+    gap: 30px;
+    margin-top: 30px;
+}
+
+.panel-anuncios-preview {
+    width: 100%;
+}
+
+.formulario-anuncio-admin {
+    background: white;
+    padding: 25px;
+    border-radius: 24px;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.08);
+    height: fit-content;
+    position: sticky;
+    top: 20px;
+}
+
+.formulario-anuncio-admin h3 {
+    color: #8f1239;
+    margin-bottom: 20px;
+    font-size: 24px;
+}
+
+.formulario-anuncio-admin form {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+.formulario-anuncio-admin label {
+    font-weight: 600;
+    color: #444;
+    font-size: 14px;
+}
+
+.formulario-anuncio-admin input,
+.formulario-anuncio-admin textarea {
+    border: 1px solid #ddd;
+    border-radius: 14px;
+    padding: 14px;
+    font-family: 'Poppins', sans-serif;
+    font-size: 14px;
+    resize: none;
+}
+
+.formulario-anuncio-admin input:focus,
+.formulario-anuncio-admin textarea:focus {
+    outline: none;
+    border-color: #8f1239;
+}
+
+.btn-publicar-anuncio {
+    background-color: #8f1239;
+    color: white;
+    border: none;
+    padding: 14px;
+    border-radius: 14px;
+    cursor: pointer;
+    font-family: 'Poppins', sans-serif;
+    font-weight: 600;
+    transition: 0.3s;
+}
+
+.btn-publicar-anuncio:hover {
+    background-color: #6f0d2d;
+}
+
+.card-anuncio-admin {
+    position: relative;
+}
+
+.btn-eliminar-anuncio {
+    position: absolute;
+    top: 14px;
+    right: 14px;
+    width: 38px;
+    height: 38px;
+    border: none;
+    border-radius: 50%;
+    background-color: #ffd6d6;
+    color: #b32626;
+    cursor: pointer;
+    font-size: 16px;
+    transition: 0.3s;
+    z-index: 5;
+}
+
+.btn-eliminar-anuncio:hover {
+    background-color: #ffb3b3;
+    transform: scale(1.05);
+}
+
+@media (max-width: 1000px) {
+
+    .layout-anuncios-admin {
+        grid-template-columns: 1fr;
+    }
+
+    .formulario-anuncio-admin {
+        position: static;
+    }
+
+}

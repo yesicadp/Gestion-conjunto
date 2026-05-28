@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Anuncios Admin - El Ciprés</title>
+
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/dashboard.css') }}?v=16">
+    <link href="https://fonts.googleapis.com/css2?family=Great+Vibes&family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+
+<div class="contenedor-principal">
+
+    <header class="header">
+        <div class="logo-area">
+            <p class="texto-superior">Agrupación de Vivienda</p>
+            <h1 class="logo">El Ciprés</h1>
+        </div>
+
+        <div class="bienvenida-area">
+            <p>Panel del Administrador</p>
+            <h2>Creador de Noticias</h2>
+        </div>
+    </header>
+
+    <div class="contenido-general">
+
+        <aside class="sidebar">
+            <ul>
+                <li><a href="{{ url_for('main.dashboard_admin') }}">Inicio</a></li>
+                <li><a href="{{ url_for('main.gestion_pagos') }}">Pagos</a></li>
+                <li><a href="{{ url_for('main.parqueaderos_admin') }}">Parqueaderos</a></li>
+                <li><a href="{{ url_for('main.reservas_admin') }}">Reservas</a></li>
+                <li><a href="{{ url_for('main.anuncios_admin') }}">Anuncios</a></li>
+                <li><a href="{{ url_for('main.logout') }}">Cerrar sesión</a></li>
+            </ul>
+        </aside>
+
+        <main class="main">
+
+            <section class="contenedor-anuncios-admin">
+
+                <div class="hero-reservas">
+                    <h2>Crear y gestionar anuncios</h2>
+                    <p>Publica noticias importantes para los residentes del conjunto.</p>
+                </div>
+
+                <div class="layout-anuncios-admin">
+
+                    <div class="panel-anuncios-preview">
+
+                        <h3>Anuncios publicados</h3>
+
+                        <div class="grid-anuncios">
+
+                            {% if anuncios %}
+
+                                {% for anuncio in anuncios %}
+
+                                    <div class="card-anuncio card-anuncio-admin">
+
+                                        <form method="POST" action="{{ url_for('main.eliminar_anuncio', id_anuncio=anuncio.id_anuncio) }}">
+                                            <button type="submit" class="btn-eliminar-anuncio">
+                                                🗑
+                                            </button>
+                                        </form>
+
+                                        {% if anuncio.imagen %}
+                                            <img
+                                                src="{{ url_for('static', filename=anuncio.imagen) }}"
+                                                class="imagen-anuncio"
+                                            >
+                                        {% endif %}
+
+                                        <div class="contenido-anuncio">
+
+                                            <div class="top-anuncio">
+                                                <span class="badge-anuncio badge-evento">
+                                                    Anuncio
+                                                </span>
+
+                                                <span class="fecha-anuncio">
+                                                    {{ anuncio.fecha_creacion.strftime('%d/%m/%Y') }}
+                                                </span>
+                                            </div>
+
+                                            <h3>{{ anuncio.titulo }}</h3>
+
+                                            <p>{{ anuncio.contenido }}</p>
+
+                                        </div>
+
+                                    </div>
+
+                                {% endfor %}
+
+                            {% else %}
+
+                                <p class="texto-vacio">
+                                    Todavía no hay anuncios publicados.
+                                </p>
+
+                            {% endif %}
+
+                        </div>
+
+                    </div>
+
+                    <div class="formulario-anuncio-admin">
+
+                        <h3>Nuevo anuncio</h3>
+
+                        <form method="POST" action="{{ url_for('main.anuncios_admin') }}" enctype="multipart/form-data">
+
+                            <label for="titulo">Título</label>
+                            <input
+                                type="text"
+                                id="titulo"
+                                name="titulo"
+                                placeholder="Ej: Corte de agua programado"
+                                required
+                            >
+
+                            <label for="contenido">Contenido</label>
+                            <textarea
+                                id="contenido"
+                                name="contenido"
+                                rows="6"
+                                placeholder="Escribe aquí la información del anuncio..."
+                                required
+                            ></textarea>
+
+                            <label for="imagen">Imagen del anuncio</label>
+                            <input
+                                type="file"
+                                id="imagen"
+                                name="imagen"
+                                accept="image/*"
+                            >
+
+                            <button type="submit" class="btn-publicar-anuncio">
+                                Publicar anuncio
+                            </button>
+
+                        </form>
+
+                    </div>
+
+                </div>
+
+            </section>
+
+        </main>
+
+    </div>
+
+</div>
+
+</body>
+</html>
