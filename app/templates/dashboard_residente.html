@@ -112,16 +112,12 @@ function cerrarPerfil() {
                         Sin asignar
                     {% endif %}
                 </h2>
-                <div class="busqueda-area">
-                    <input type="text" placeholder="Buscar">
-                </div>
             </div>
 
             <div class="iconos-area">
                 <button class="btn-header" type="button" onclick="abrirNotificaciones()" title="Notificaciones">
                     💬
                 </button>
-                <a class="btn-header" href="{{ url_for('main.en_proceso') }}" title="Configuración">⚙</a>
                 <button class="btn-header perfil-btn" type="button" onclick="abrirPerfil()" title="Perfil">
                     <img src="{{ url_for('static', filename='img/perfil.png') }}" alt="Perfil">
                 </button>

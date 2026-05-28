@@ -130,15 +130,10 @@ function cerrarDetalleVivienda(id) {
             <div class="bienvenida-area">
                 <p>Bienvenido a El Ciprés</p>
                 <h2>Panel de Administración</h2>
-
-                <div class="busqueda-area">
-                    <input type="text" placeholder="Buscar">
-                </div>
             </div>
 
             <div class="iconos-area">
                 <button class="btn-header" type="button" onclick="abrirNotificaciones()" title="Notificaciones">💬</button>
-                <a class="btn-header" href="{{ url_for('main.en_proceso') }}">⚙</a>
                 <button class="btn-header perfil-btn" type="button" onclick="abrirPerfil()" title="Perfil">
                     <img src="{{ url_for('static', filename='img/perfil.png') }}" alt="Perfil">
                 </button>

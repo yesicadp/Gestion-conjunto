@@ -189,10 +189,13 @@ def dashboard_admin():
     query = """
         SELECT 
             v.id_vivienda,
+            u.id_usuario,
             u.nombres,
             u.apellidos,
+            u.correo_electronico,
             u.telefono,
-            v.estado_financiero
+            v.estado_financiero,
+            v.tiene_vehiculo
         FROM viviendas v
         LEFT JOIN usuarios u 
             ON v.id_usuario = u.id_usuario
@@ -212,6 +215,38 @@ def dashboard_admin():
         viviendas=viviendas,
         anuncios=anuncios_recientes
     )
+
+@main.route('/admin/editar-residente/<int:id_usuario>', methods=['POST'])
+def editar_residente(id_usuario):
+    if 'rol' not in session or session['rol'] != 'administrador':
+        return redirect(url_for('main.login'))
+
+    nombres = request.form.get('nombres')
+    apellidos = request.form.get('apellidos')
+    telefono = request.form.get('telefono')
+    correo = request.form.get('correo_electronico')
+
+    conexion = obtener_conexion()
+    if not conexion:
+        return "Error de conexión a la base de datos", 500
+
+    cursor = conexion.cursor(dictionary=True)
+
+    cursor.execute("""
+        UPDATE usuarios
+        SET nombres = %s,
+            apellidos = %s,
+            telefono = %s,
+            correo_electronico = %s
+        WHERE id_usuario = %s
+    """, (nombres, apellidos, telefono, correo, id_usuario))
+
+    conexion.commit()
+
+    cursor.close()
+    conexion.close()
+
+    return redirect(url_for('main.dashboard_admin'))
 
 # Rutas para gestionar viviendas (administrador)
 @main.route('/viviendas', methods=['GET'])
