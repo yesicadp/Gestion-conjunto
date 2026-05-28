@@ -225,6 +225,7 @@ def editar_residente(id_usuario):
     apellidos = request.form.get('apellidos')
     telefono = request.form.get('telefono')
     correo = request.form.get('correo_electronico')
+    tiene_vehiculo = request.form.get('tiene_vehiculo')
 
     conexion = obtener_conexion()
     if not conexion:
@@ -240,6 +241,12 @@ def editar_residente(id_usuario):
             correo_electronico = %s
         WHERE id_usuario = %s
     """, (nombres, apellidos, telefono, correo, id_usuario))
+
+    cursor.execute("""
+        UPDATE viviendas
+        SET tiene_vehiculo = %s
+        WHERE id_usuario = %s
+    """, (tiene_vehiculo, id_usuario))
 
     conexion.commit()
 

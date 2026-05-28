@@ -83,6 +83,10 @@ function cerrarPerfil() {
 
         <h2>Casa {{ vivienda.id_vivienda }}</h2>
 
+        <button class="btn-editar-residente" onclick="mostrarFormularioEditar()">
+            ✏️ Editar residente
+        </button>
+
         <div class="perfil-info">
             <p><strong>🏠 Vivienda:</strong> Casa {{ vivienda.id_vivienda }}</p>
 
@@ -104,10 +108,63 @@ function cerrarPerfil() {
                 {% endif %}
             </p>
         </div>
+        <form 
+            id="formEditarResidente"
+            class="form-editar-residente"
+            method="POST"
+            action="{{ url_for('main.editar_residente', id_usuario=vivienda.id_usuario) }}"
+            style="display: none;"
+        >
+            <label>Nombres</label>
+            <input type="text" name="nombres" value="{{ vivienda.nombres }}" required>
+
+            <label>Apellidos</label>
+            <input type="text" name="apellidos" value="{{ vivienda.apellidos }}" required>
+
+            <label>Teléfono</label>
+            <input type="text" name="telefono" value="{{ vivienda.telefono }}">
+
+            <label>Tiene vehículo</label>
+
+            <select name="tiene_vehiculo">
+                <option value="1"
+                    {% if vivienda.tiene_vehiculo == 1 %}
+                        selected
+                    {% endif %}
+                >
+                    Sí
+                </option>
+
+                <option value="0"
+                    {% if vivienda.tiene_vehiculo == 0 %}
+                        selected
+                    {% endif %}
+                >
+                    No
+                </option>
+            </select>
+
+            <label>Correo</label>
+            <input type="email" name="correo_electronico" value="{{ vivienda.correo_electronico }}" required>
+
+            <button type="submit" class="btn-guardar-edicion">
+                Guardar cambios
+            </button>
+        </form>
     </div>
 </div>
 {% endfor %}
+<script>
+function mostrarFormularioEditar() {
+    const formulario = document.getElementById("formEditarResidente");
 
+    if (formulario.style.display === "none") {
+        formulario.style.display = "flex";
+    } else {
+        formulario.style.display = "none";
+    }
+}
+</script>
 <script>
 function abrirDetalleVivienda(id) {
     document.getElementById("modalVivienda" + id).style.display = "flex";
