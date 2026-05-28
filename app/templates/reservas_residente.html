@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Reservas - El Ciprés</title>
+
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/dashboard.css') }}?v=8">
+    <link href="https://fonts.googleapis.com/css2?family=Great+Vibes&family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+
+<div class="contenedor-principal">
+
+    <header class="header">
+        <div class="logo-area">
+            <p class="texto-superior">Agrupación de Vivienda</p>
+            <h1 class="logo">El Ciprés</h1>
+        </div>
+
+        <div class="bienvenida-area">
+            <p>Panel del Residente</p>
+            <h2>Reservas del Salón Comunal</h2>
+        </div>
+    </header>
+
+    <div class="contenido-general">
+
+        <aside class="sidebar">
+            <ul>
+                <li><a href="{{ url_for('main.dashboard_residente') }}">Inicio</a></li>
+                <li><a href="{{ url_for('main.pagos_residente') }}">Pagos</a></li>
+                <li><a href="{{ url_for('main.parqueadero_residente') }}">Parqueaderos</a></li>
+                <li><a href="{{ url_for('main.reservas_residente') }}">Reservas</a></li>
+                <li><a href="{{ url_for('main.en_proceso') }}">Anuncios</a></li>
+                <li><a href="{{ url_for('main.logout') }}">Cerrar sesión</a></li>
+            </ul>
+        </aside>
+
+        <main class="main">
+
+            <section class="reservas-contenedor">
+
+                <div class="hero-reservas">
+                    <h2>Reserva el Salón Comunal</h2>
+                    <p>Elige una fecha para solicitar tu reserva. El administrador revisará tu solicitud.</p>
+                </div>
+
+                <div class="reservas-grid">
+
+                    <div class="card-reserva">
+                        <h3>Crear solicitud</h3>
+
+                        <form method="POST" action="{{ url_for('main.reservas_residente') }}">
+                            <label for="fecha_evento">Fecha del evento</label>
+                            <input type="date" id="fecha_evento" name="fecha_evento" required>
+
+                            <label for="franja">Franja horaria</label>
+                            <select id="franja" name="franja">
+                                <option value="Mañana">Mañana: 8:00 AM - 1:00 PM</option>
+                                <option value="Tarde-Noche">Tarde-Noche: 2:00 PM - 10:00 PM</option>
+                            </select>
+
+                            <button type="submit" class="btn-reserva">Solicitar Reserva</button>
+                        </form>
+
+                        <p id="mensajeReserva" class="mensaje-reserva"></p>
+                    </div>
+
+                    <div class="card-reserva">
+                        <h3>Mis reservas</h3>
+                        <div class="lista-reservas">
+
+                            {% if mis_reservas %}
+
+                                {% for reserva in mis_reservas %}
+
+                                    <div class="item-reserva estado-{{ reserva.estado }}">
+
+                                        <h4>
+                                            {% if reserva.estado == 'aprobada' %}
+                                                ✅ Reserva aprobada
+                                            {% elif reserva.estado == 'rechazada' %}
+                                                ❌ Solicitud rechazada
+                                            {% else %}
+                                                ⏳ Pendiente de aprobación
+                                            {% endif %}
+                                        </h4>
+
+                                        <p>
+                                            <strong>Fecha:</strong>
+                                            {{ reserva.fecha_evento }}
+                                        </p>
+
+                                    </div>
+
+                                {% endfor %}
+
+                            {% else %}
+
+                                <p class="texto-vacio">
+                                    Aún no tienes reservas.
+                                </p>
+
+                            {% endif %}
+
+                        </div>
+                    </div>
+
+                </div>
+
+            </section>
+
+        </main>
+    </div>
+</div>
+</body>
+</html>

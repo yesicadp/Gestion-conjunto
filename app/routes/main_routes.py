@@ -406,104 +406,104 @@ def pagos_residente():
         historial=historial
     )
 
-# Rutas para gestionar reservas
-@main.route('/reservas', methods=['GET', 'POST'])
-def gestion_reservas():
-    if 'usuario_id' not in session:
-        return jsonify({"error": "Debe iniciar sesión para acceder"}), 401
+# Ruta para gestionar reservas del residente
+@main.route('/reservas-residente', methods=['GET', 'POST'])
+def reservas_residente():
+    if 'rol' not in session or session['rol'] != 'residente':
+        return redirect(url_for('main.login'))
 
     usuario_id = session['usuario_id']
-    rol = session.get('rol')
+
     conexion = obtener_conexion()
-    if not conexion: 
-        return jsonify({"error": "Error de conexión con la base de datos"}), 500
-    
+    if not conexion:
+        return "Error de conexión a la base de datos", 500
+
     cursor = conexion.cursor(dictionary=True)
 
-    # Crear reserva
     if request.method == 'POST':
-        fecha_evento_str = request.form.get('fecha_evento')
-        
-        if not fecha_evento_str:
-            return jsonify({"error": "La fecha es obligatoria"}), 400
-        
-        try:
-            # Validar 
-            fecha_evento = datetime.strptime(fecha_evento_str, '%Y-%m-%d').date()
-            if fecha_evento < datetime.now().date():
-                return jsonify({"error": "No puedes reservar en una fecha pasada"}), 400
+        fecha_evento = request.form.get('fecha_evento')
 
-            # Validar doble reserva (que nadie más tenga ese dia pendiente o aprobado)
+        if fecha_evento:
             cursor.execute("""
-                SELECT id_reserva FROM reservas 
-                WHERE DATE(fecha_evento) = %s AND estado IN ('pendiente', 'aprobada')
-            """, (fecha_evento,))
-            reserva_existente = cursor.fetchone()
+                INSERT INTO reservas (id_usuario, fecha_evento, estado)
+                VALUES (%s, %s, 'pendiente')
+            """, (usuario_id, fecha_evento))
 
-            if reserva_existente:
-                return jsonify({"error": "Esta fecha ya se encuentra reservada o en proceso de revisión"}), 400
-
-            # Logica de auto-aprobación para el administrador
-            estado_reserva = 'aprobada' if rol == 'administrador' else 'pendiente'
-
-            query = "INSERT INTO reservas (id_usuario, fecha_evento, estado) VALUES (%s, %s, %s)"
-            cursor.execute(query, (usuario_id, fecha_evento_str, estado_reserva))
             conexion.commit()
-            
-            mensaje = "Reserva aprobada automáticamente." if rol == 'administrador' else "Reserva enviada con éxito. Pendiente de aprobación."
-            return jsonify({"mensaje": mensaje}), 201
 
-        except ValueError:
-            return jsonify({"error": "Formato de fecha inválido. Use YYYY-MM-DD."}), 400
-        except Exception as e:
-            return jsonify({"error": f"No se pudo guardar la reserva: {str(e)}"}), 500
-    
-    # Ver reservas (El Admin ve las de todo el conjunto, el Residente solo las suyas)
-    if rol == 'administrador':
-        query_consultar = """
-            SELECT r.id_reserva, r.fecha_evento, r.estado, u.nombres, u.apellidos 
-            FROM reservas r
-            JOIN usuarios u ON r.id_usuario = u.id_usuario
-            ORDER BY r.fecha_evento DESC
-        """
-        cursor.execute(query_consultar)
-    else:
-        query_consultar = "SELECT id_reserva, fecha_evento, estado FROM reservas WHERE id_usuario = %s ORDER BY fecha_evento DESC"
-        cursor.execute(query_consultar, (usuario_id,))
-        
-    mis_reservas = cursor.fetchall()
-
-    # Formateamos las fechas para que JSON no se rompa
-    for r in mis_reservas:
-        r['fecha_evento'] = str(r['fecha_evento'])
-        
-    cursor.close()
-    conexion.close()
-    
-    return jsonify({"reservas": mis_reservas})
-
-# Nueva ruta para que el Administrador apruebe o rechace reservas
-@main.route('/admin/reservas/<int:id_reserva>', methods=['POST'])
-def actualizar_reserva(id_reserva):
-    if 'rol' not in session or session['rol'] != 'administrador':
-        return jsonify({"error": "Acceso no autorizado"}), 403
-
-    nuevo_estado = request.form.get('estado') # Debe recibir 'aprobada' o 'rechazada'
-    if nuevo_estado not in ['aprobada', 'rechazada']:
-        return jsonify({"error": "Estado no válido"}), 400
-
-    conexion = obtener_conexion()
-    cursor = conexion.cursor()
-    
-    try:
-        cursor.execute("UPDATE reservas SET estado = %s WHERE id_reserva = %s", (nuevo_estado, id_reserva))
-        conexion.commit()
-        return jsonify({"mensaje": f"Reserva {nuevo_estado} correctamente"}), 200
-    except Exception as e:
-        return jsonify({"error": f"Error al actualizar la reserva: {str(e)}"}), 500
-    finally:
         cursor.close()
         conexion.close()
+
+        return redirect(url_for('main.reservas_residente'))
+
+    cursor.execute("""
+        SELECT id_reserva, fecha_evento, estado
+        FROM reservas
+        WHERE id_usuario = %s
+        ORDER BY fecha_evento DESC
+    """, (usuario_id,))
+
+    mis_reservas = cursor.fetchall()
+
+    cursor.close()
+    conexion.close()
+
+    return render_template(
+        'reservas_residente.html',
+        mis_reservas=mis_reservas
+    )
+
+# Ruta para gestionar reservas del administrador
+@main.route('/reservas-admin', methods=['GET', 'POST'])
+def reservas_admin():
+    if 'rol' not in session or session['rol'] != 'administrador':
+        return redirect(url_for('main.login'))
+
+    conexion = obtener_conexion()
+    if not conexion:
+        return "Error de conexión a la base de datos", 500
+
+    cursor = conexion.cursor(dictionary=True)
+
+    if request.method == 'POST':
+        accion = request.form.get('accion')
+        id_reserva = request.form.get('id_reserva')
+
+        if accion in ['aprobada', 'rechazada'] and id_reserva:
+            cursor.execute("""
+                UPDATE reservas
+                SET estado = %s
+                WHERE id_reserva = %s
+            """, (accion, id_reserva))
+
+            conexion.commit()
+
+        cursor.close()
+        conexion.close()
+
+        return redirect(url_for('main.reservas_admin'))
+
+    cursor.execute("""
+        SELECT 
+            r.id_reserva,
+            r.fecha_evento,
+            r.estado,
+            u.nombres,
+            u.apellidos
+        FROM reservas r
+        JOIN usuarios u ON r.id_usuario = u.id_usuario
+        ORDER BY r.fecha_evento DESC
+    """)
+
+    reservas = cursor.fetchall()
+
+    cursor.close()
+    conexion.close()
+
+    return render_template(
+        'reservas_admin.html',
+        reservas=reservas
+    )
 
 # Ruta para gestionar anuncios
 @main.route('/anuncios', methods=['GET', 'POST'])

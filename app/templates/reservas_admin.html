@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Administrar Reservas - El Ciprés</title>
+
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/dashboard.css') }}?v=8">
+    <link href="https://fonts.googleapis.com/css2?family=Great+Vibes&family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+
+<div class="contenedor-principal">
+
+    <header class="header">
+        <div class="logo-area">
+            <p class="texto-superior">Agrupación de Vivienda</p>
+            <h1 class="logo">El Ciprés</h1>
+        </div>
+
+        <div class="bienvenida-area">
+            <p>Panel del Administrador</p>
+            <h2>Administrar Reservas</h2>
+        </div>
+    </header>
+
+    <div class="contenido-general">
+
+        <aside class="sidebar">
+            <ul>
+                <li><a href="{{ url_for('main.dashboard_admin') }}">Inicio</a></li>
+                <li><a href="{{ url_for('main.gestion_pagos') }}">Pagos</a></li>
+                <li><a href="{{ url_for('main.parqueaderos_admin') }}">Parqueaderos</a></li>
+                <li><a href="{{ url_for('main.reservas_admin') }}">Reservas</a></li>
+                <li><a href="{{ url_for('main.en_proceso') }}">Anuncios</a></li>
+                <li><a href="{{ url_for('main.logout') }}">Cerrar sesión</a></li>
+            </ul>
+        </aside>
+
+        <main class="main">
+
+            <section class="reservas-contenedor">
+
+                <div class="hero-reservas">
+                    <h2>Solicitudes de reservas</h2>
+                    <p>Aquí puedes revisar las reservas del salón comunal y aprobarlas o rechazarlas.</p>
+                </div>
+
+                <div class="card-reserva">
+
+                    <h3>Reservas registradas</h3>
+
+                    <div class="tabla-reservas-admin">
+
+                        {% if reservas %}
+
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th>Residente</th>
+                                        <th>Fecha</th>
+                                        <th>Estado</th>
+                                        <th>Acción</th>
+                                    </tr>
+                                </thead>
+
+                                <tbody>
+                                    {% for reserva in reservas %}
+                                        <tr>
+                                            <td>{{ reserva.nombres }} {{ reserva.apellidos }}</td>
+                                            <td>{{ reserva.fecha_evento }}</td>
+                                            <td>
+                                                {% if reserva.estado == 'aprobada' %}
+                                                    ✅ Aprobada
+                                                {% elif reserva.estado == 'rechazada' %}
+                                                    ❌ Rechazada
+                                                {% else %}
+                                                    ⏳ Pendiente
+                                                {% endif %}
+                                            </td>
+                                            <td>
+                                                {% if reserva.estado == 'pendiente' %}
+                                                    <form method="POST" action="{{ url_for('main.reservas_admin') }}" class="form-acciones-reserva">
+                                                        <input type="hidden" name="id_reserva" value="{{ reserva.id_reserva }}">
+
+                                                        <button type="submit" name="accion" value="aprobada" class="btn-aprobar">
+                                                            Aprobar
+                                                        </button>
+
+                                                        <button type="submit" name="accion" value="rechazada" class="btn-rechazar">
+                                                            Rechazar
+                                                        </button>
+                                                    </form>
+                                                {% else %}
+                                                    <span class="texto-vacio">Sin acciones</span>
+                                                {% endif %}
+                                            </td>
+                                        </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+
+                        {% else %}
+
+                            <p class="texto-vacio">Todavía no hay reservas registradas.</p>
+
+                        {% endif %}
+
+                    </div>
+
+                </div>
+
+            </section>
+
+        </main>
+
+    </div>
+
+</div>
+
+</body>
+</html>

@@ -922,3 +922,263 @@ body {
     background-color: #fafafa;
     border-radius: 12px;
 }
+
+/* =========================
+   RESERVAS - EL CIPRÉS
+========================= */
+
+.reservas-contenedor {
+    width: 100%;
+    padding: 30px;
+}
+
+.hero-reservas {
+    background: #f9e8f0;
+    border: 1px solid #e9b8cb;
+    border-radius: 22px;
+    padding: 25px 30px;
+    margin-bottom: 25px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+}
+
+.hero-reservas h2 {
+    color: #9b0f3f;
+    font-size: 28px;
+    margin-bottom: 8px;
+}
+
+.hero-reservas p {
+    color: #444;
+    font-size: 15px;
+}
+
+.reservas-grid {
+    display: grid;
+    grid-template-columns: 1fr 1.3fr;
+    gap: 25px;
+}
+
+.card-reserva {
+    background: #ffffff;
+    border: 1px solid #ddd;
+    border-radius: 22px;
+    padding: 25px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+}
+
+.card-reserva h3 {
+    color: #9b0f3f;
+    margin-bottom: 18px;
+    font-size: 22px;
+}
+
+.card-reserva label {
+    display: block;
+    font-weight: 600;
+    margin-top: 15px;
+    margin-bottom: 7px;
+    color: #333;
+}
+
+.card-reserva input,
+.card-reserva select {
+    width: 100%;
+    padding: 12px;
+    border-radius: 12px;
+    border: 1px solid #ccc;
+    font-family: 'Poppins', sans-serif;
+    font-size: 14px;
+}
+
+.btn-reserva {
+    width: 100%;
+    margin-top: 22px;
+    padding: 13px;
+    border: none;
+    border-radius: 18px;
+    background: #9b0f3f;
+    color: white;
+    font-weight: 700;
+    font-family: 'Poppins', sans-serif;
+    cursor: pointer;
+}
+
+.btn-reserva:hover {
+    background: #7f0c34;
+}
+
+.mensaje-reserva {
+    margin-top: 15px;
+    font-weight: 600;
+    text-align: center;
+}
+
+.mensaje-reserva.exito {
+    color: #2d8a4d;
+}
+
+.mensaje-reserva.error {
+    color: #b32645;
+}
+
+.lista-reservas {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+}
+
+.item-reserva {
+    padding: 15px;
+    border-radius: 16px;
+    border: 1px solid #ddd;
+}
+
+.item-reserva h4 {
+    margin-bottom: 6px;
+    color: #333;
+}
+
+.item-reserva p {
+    margin: 0;
+    font-size: 14px;
+}
+
+.estado-pendiente {
+    background: #fff6d8;
+    border-color: #ead27c;
+}
+
+.estado-aprobada {
+    background: #e4f8e9;
+    border-color: #9bd6aa;
+}
+
+.estado-rechazada {
+    background: #fbe4ec;
+    border-color: #e2a8bb;
+}
+
+.texto-vacio {
+    color: #777;
+    font-size: 14px;
+}
+
+/* Tabla admin */
+
+.tabla-reservas-contenedor {
+    overflow-x: auto;
+}
+
+.tabla-reservas {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 14px;
+}
+
+.tabla-reservas th {
+    background: #9b0f3f;
+    color: white;
+    padding: 13px;
+    text-align: left;
+}
+
+.tabla-reservas td {
+    padding: 13px;
+    border-bottom: 1px solid #eee;
+}
+
+.tabla-reservas tr:hover {
+    background: #faf2f6;
+}
+
+.badge-reserva {
+    padding: 6px 12px;
+    border-radius: 20px;
+    font-weight: 700;
+    text-transform: capitalize;
+    font-size: 12px;
+}
+
+.btn-aprobar,
+.btn-rechazar {
+    border: none;
+    padding: 8px 13px;
+    border-radius: 14px;
+    color: white;
+    font-family: 'Poppins', sans-serif;
+    font-weight: 600;
+    cursor: pointer;
+    margin-right: 5px;
+}
+
+.btn-aprobar {
+    background: #3b9b5f;
+}
+
+.btn-rechazar {
+    background: #b32645;
+}
+
+.texto-accion {
+    color: #777;
+    font-size: 13px;
+}
+
+/* Responsive */
+
+@media (max-width: 900px) {
+    .reservas-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+.tabla-reservas-admin {
+    width: 100%;
+    overflow-x: auto;
+}
+
+.tabla-reservas-admin table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 20px;
+    background: #fff;
+    border-radius: 14px;
+    overflow: hidden;
+}
+
+.tabla-reservas-admin th {
+    background-color: #8f1239;
+    color: white;
+    padding: 14px;
+    text-align: left;
+    font-size: 14px;
+}
+
+.tabla-reservas-admin td {
+    padding: 14px;
+    border-bottom: 1px solid #eee;
+    font-size: 14px;
+}
+
+.form-acciones-reserva {
+    display: flex;
+    gap: 8px;
+}
+
+.btn-aprobar,
+.btn-rechazar {
+    border: none;
+    padding: 8px 12px;
+    border-radius: 10px;
+    color: white;
+    cursor: pointer;
+    font-family: 'Poppins', sans-serif;
+}
+
+.btn-aprobar {
+    background-color: #2e8b57;
+}
+
+.btn-rechazar {
+    background-color: #b32626;
+}
