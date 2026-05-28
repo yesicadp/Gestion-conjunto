@@ -152,16 +152,34 @@ function cerrarPerfil() {
 
                 <!-- AVISO IMPORTANTE -->
                 <section class="aviso-importante">
-                    <div class="imagen-aviso">
-                        <img src="{{ url_for('static', filename='img/corte-agua.jpg') }}" alt="Imagen del aviso">
+                    {% if anuncio_principal %}
+
+                    <div class="anuncio-dashboard">
+
+                        {% if anuncio_principal.imagen %}
+                            <img 
+                                src="{{ url_for('static', filename=anuncio_principal.imagen) }}" 
+                                alt="Imagen del anuncio"
+                            >
+                        {% endif %}
+
+                        <div>
+                            <h3>{{ anuncio_principal.titulo }}</h3>
+                            <p>{{ anuncio_principal.contenido }}</p>
+                        </div>
+
                     </div>
-                    <div class="texto-aviso">
-                        <h3>Cortes de Agua</h3>
-                        <p>
-                            En todas las viviendas del día 1 de abril al 7 de abril
-                            se hará cortes de agua por mantenimiento.
-                        </p>
+
+                {% else %}
+
+                    <div class="anuncio-dashboard">
+                        <div>
+                            <h3>No hay anuncios recientes</h3>
+                            <p>Cuando el administrador publique un anuncio, aparecerá aquí.</p>
+                        </div>
                     </div>
+
+                {% endif %}
                 </section>
 
                 <!-- ZONA DE TARJETAS -->
@@ -201,49 +219,48 @@ function cerrarPerfil() {
                     </article>
 
                     <!-- CALENDARIO -->
-                    <article class="card calendario">
-                        <div class="calendario-header">
-                            <button type="button">&lt;</button>
-                            <select>
-                                <option>Sep</option>
-                            </select>
-                            <select>
-                                <option>2025</option>
-                            </select>
-                            <button type="button">&gt;</button>
+                    <div class="card-dashboard calendario-card">
+
+                        <div class="titulo-calendario">
+                            <h3>Calendario</h3>
+                            <p>{{ mes_actual }}/{{ anio_actual }}</p>
                         </div>
 
-                        <table>
-                            <thead>
-                                <tr>
-                                    <th>Su</th>
-                                    <th>Mo</th>
-                                    <th>Tu</th>
-                                    <th>We</th>
-                                    <th>Th</th>
-                                    <th>Fr</th>
-                                    <th>Sa</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <tr>
-                                    <td></td><td>1</td><td>2</td><td>3</td><td>4</td><td>5</td><td>6</td>
-                                </tr>
-                                <tr>
-                                    <td>7</td><td>8</td><td>9</td><td>10</td><td>11</td><td>12</td><td>13</td>
-                                </tr>
-                                <tr>
-                                    <td>14</td><td>15</td><td>16</td><td>17</td><td>18</td><td>19</td><td>20</td>
-                                </tr>
-                                <tr>
-                                    <td>21</td><td>22</td><td>23</td><td>24</td><td>25</td><td>26</td><td>27</td>
-                                </tr>
-                                <tr>
-                                    <td>28</td><td>29</td><td>30</td><td></td><td></td><td></td><td></td>
-                                </tr>
-                            </tbody>
-                        </table>
-                    </article>
+                        <div class="dias-semana">
+                            <span>Lu</span>
+                            <span>Ma</span>
+                            <span>Mi</span>
+                            <span>Ju</span>
+                            <span>Vi</span>
+                            <span>Sa</span>
+                            <span>Do</span>
+                        </div>
+
+                        <div class="calendario-simple">
+
+                            {% for i in range(espacios_inicio) %}
+                                <div class="dia-vacio"></div>
+                            {% endfor %}
+
+                            {% for dia in range(1, dias_mes + 1) %}
+
+                                {% set estado = reservas_por_dia.get(dia, '') %}
+
+                                <div class="dia-calendario {{ estado }}">
+                                    {{ dia }}
+                                </div>
+
+                            {% endfor %}
+
+                        </div>
+
+                        <div class="leyenda-calendario">
+                            <span><b class="punto pendiente"></b> Pendiente</span>
+                            <span><b class="punto aprobada"></b> Aprobada</span>
+                            <span><b class="punto rechazada"></b> Rechazada</span>
+                        </div>
+
+                    </div>
 
                     <!-- SALÓN COMUNAL -->
                     <article class="card salon-comunal">

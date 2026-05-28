@@ -10,6 +10,7 @@ import string
 import secrets
 import os
 import random
+import calendar
 
 main = Blueprint('main', __name__)
 # Configuración para imágenes de anuncios
@@ -133,8 +134,10 @@ def dashboard_residente():
         SELECT 
             ap.id_parqueadero,
             ap.fecha_inicio,
-            ap.fecha_fin
+            ap.fecha_fin,
+            p.estado
         FROM asignacion_parqueaderos ap
+        JOIN parqueaderos p ON ap.id_parqueadero = p.id_parqueadero
         WHERE ap.id_vivienda = %s
         ORDER BY ap.fecha_inicio DESC
         LIMIT 1
@@ -148,14 +151,42 @@ def dashboard_residente():
             estado
         FROM reservas
         WHERE id_usuario = %s
-        ORDER BY fecha_evento DESC
-        LIMIT 3
+        ORDER BY fecha_evento ASC
     """, (usuario_id,))
     reservas = cursor.fetchall()
+    
+    hoy = date.today()
+    mes_actual = hoy.month
+    anio_actual = hoy.year
+
+    reservas_calendario = []
+
+    for reserva in reservas:
+        fecha = reserva['fecha_evento']
+
+        if isinstance(fecha, str):
+            fecha = datetime.strptime(fecha, "%Y-%m-%d").date()
+
+        if fecha.month == mes_actual and fecha.year == anio_actual:
+            reservas_calendario.append({
+                "dia": fecha.day,
+                "estado": reserva['estado']
+            })
+            
+    primer_dia_semana, dias_mes = calendar.monthrange(anio_actual, mes_actual)
+    espacios_inicio = primer_dia_semana
+    reservas_por_dia = {}
+    for reserva in reservas_calendario:
+        reservas_por_dia[reserva["dia"]] = reserva["estado"]
 
     # Obtener los 5 anuncios más recientes para el dashboard
-    cursor.execute("SELECT titulo, contenido, imagen, fecha_creacion FROM anuncios ORDER BY fecha_creacion DESC LIMIT 5")
-    anuncios_recientes = cursor.fetchall()
+    cursor.execute("""
+    SELECT id_anuncio, titulo, contenido, imagen, fecha_creacion
+        FROM anuncios
+        ORDER BY fecha_creacion DESC
+        LIMIT 1
+    """)
+    anuncio_principal = cursor.fetchone()
     cursor.close()
     conexion.close()
 
@@ -170,7 +201,13 @@ def dashboard_residente():
         total=total,
         parqueadero_asignado=parqueadero_asignado,
         reservas=reservas,
-        anuncios=anuncios_recientes
+        anuncio_principal=anuncio_principal,
+        reservas_calendario=reservas_calendario,
+        mes_actual=mes_actual,
+        anio_actual=anio_actual,
+        dias_mes=dias_mes,
+        espacios_inicio=espacios_inicio,
+        reservas_por_dia=reservas_por_dia,
     )
 
 # Ruta de dashboard para administradores

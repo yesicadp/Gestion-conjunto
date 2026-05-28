@@ -1467,3 +1467,91 @@ body {
     max-height: 90vh;
     overflow-y: auto;
 }
+/* ===== CALENDARIO SIMPLE DASHBOARD ===== */
+
+.calendario-card {
+    padding: 22px;
+}
+
+.titulo-calendario {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 15px;
+}
+
+.titulo-calendario h3 {
+    color: #8f1239;
+    font-size: 20px;
+}
+
+.titulo-calendario p {
+    color: #777;
+    font-weight: 600;
+}
+
+.dias-semana,
+.calendario-simple {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 8px;
+    text-align: center;
+}
+
+.dias-semana span {
+    font-weight: 700;
+    color: #8f1239;
+    font-size: 13px;
+}
+
+.dia-calendario {
+    padding: 8px 0;
+    border-radius: 10px;
+    font-size: 14px;
+    background-color: #f7f7f7;
+}
+
+.dia-calendario.pendiente {
+    background-color: #fff3bf;
+    font-weight: 700;
+}
+
+.dia-calendario.aprobada {
+    background-color: #d8f3dc;
+    font-weight: 700;
+}
+
+.dia-calendario.rechazada {
+    background-color: #ffd6d6;
+    font-weight: 700;
+}
+
+.leyenda-calendario {
+    display: flex;
+    justify-content: center;
+    gap: 12px;
+    margin-top: 14px;
+    font-size: 12px;
+}
+
+.punto {
+    display: inline-block;
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+}
+
+.punto.pendiente {
+    background-color: #f4c430;
+}
+
+.punto.aprobada {
+    background-color: #52b788;
+}
+
+.punto.rechazada {
+    background-color: #e63946;
+}
+.dia-vacio {
+    padding: 8px 0;
+}
